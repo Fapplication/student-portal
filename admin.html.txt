@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box">
+
+<h1>Add Student Result</h1>
+
+<input type="text"
+id="id"
+placeholder="Student ID">
+
+<input type="text"
+id="name"
+placeholder="Name">
+
+<input type="text"
+id="course"
+placeholder="Course">
+
+<input type="number"
+id="mark"
+placeholder="Mark">
+
+<input type="email"
+id="email"
+placeholder="Email">
+
+<button onclick="saveData()">
+Save Result
+</button>
+
+<p id="message"></p>
+
+</div>
+
+<script type="module"
+src="admin.js"></script>
+
+</body>
+</html>

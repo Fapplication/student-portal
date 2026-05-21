@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box">
+
+<h1>Check Result</h1>
+
+<input type="text"
+id="studentId"
+placeholder="Student ID">
+
+<button onclick="getResult()">
+Check Result
+</button>
+
+<div id="result"></div>
+
+</div>
+
+<script type="module"
+src="student.js"></script>
+
+</body>
+</html>
