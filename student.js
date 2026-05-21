@@ -1,35 +1,22 @@
-import { supabase }
-from './supabase.js'
+import { supabase } from "./supabase.js"
 
-window.getResult = async function(){
+window.getResult = async function () {
 
-const studentId =
-document.getElementById('studentId').value
+    const id = document.getElementById("studentId").value
 
-const { data, error } =
-await supabase
-.from('students')
-.select('*')
-.eq('id', studentId)
-.single()
+    const { data, error } = await supabase
+        .from("students")
+        .select("*")
+        .eq("id", id)
+        .single()
 
-if(data){
-
-document.getElementById('result')
-.innerHTML =
-
-`
-<h3>${data.name}</h3>
-<p>Course: ${data.course}</p>
-<p>Mark: ${data.mark}</p>
-`
-
-}else{
-
-document.getElementById('result')
-.innerHTML =
-'Student not found'
-
-}
-
+    if (data) {
+        document.getElementById("result").innerHTML = `
+            <h3>${data.name}</h3>
+            <p>Course: ${data.course}</p>
+            <p>Mark: ${data.mark}</p>
+        `
+    } else {
+        document.getElementById("result").innerText = "No record found"
+    }
 }
