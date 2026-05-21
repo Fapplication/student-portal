@@ -1,22 +1,31 @@
-import { supabase } from "./supabase.js"
+import { supabase } from './supabase.js'
 
-window.getResult = async function () {
+const form = document.getElementById('registerForm')
 
-    const id = document.getElementById("studentId").value
+form.addEventListener('submit', async (e) => {
+  e.preventDefault()
 
-    const { data, error } = await supabase
-        .from("students")
-        .select("*")
-        .eq("id", id)
-        .single()
+  const full_name = document.getElementById('full_name').value
+  const email = document.getElementById('email').value
+  const password = document.getElementById('password').value
+  const course = document.getElementById('course').value
 
-    if (data) {
-        document.getElementById("result").innerHTML = `
-            <h3>${data.name}</h3>
-            <p>Course: ${data.course}</p>
-            <p>Mark: ${data.mark}</p>
-        `
-    } else {
-        document.getElementById("result").innerText = "No record found"
-    }
-}
+  const { error } = await supabase
+    .from('students')
+    .insert([
+      {
+        full_name,
+        email,
+        password,
+        course,
+        marks: 0
+      }
+    ])
+
+  if (error) {
+    alert(error.message)
+  } else {
+    alert('Registration Successful')
+    window.location.href = 'login.html'
+  }
+})
