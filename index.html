@@ -1,33 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Login</title>
+  <title>Student Registration</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-  <div class="card">
-    <h2>Student Login</h2>
 
-    <form id="loginForm">
-      <input type="email" id="loginEmail" placeholder="Email" required>
-      <input type="password" id="loginPassword" placeholder="Password" required>
+<h2>Student Registration</h2>
 
-      <button type="submit">Login</button>
-    </form>
+<form id="form">
 
-    <p>
-      No account?
-      <a href="index.html">Register</a>
-    </p>
-  </div>
+<input type="text" id="name" placeholder="Full Name" required>
+
+<input type="email" id="email" placeholder="Email" required>
+
+<input type="password" id="password" placeholder="Password" required>
+
+<input type="text" id="course" placeholder="Course" required>
+
+<button type="submit">Register</button>
+
+</form>
+
 </div>
 
-<script type="module" src="supabase.js"></script>
-<script type="module" src="login.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
