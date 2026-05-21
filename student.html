@@ -1,29 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Student Dashboard</title>
-<link rel="stylesheet" href="style.css">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="box">
+    <h2>Check Your Result</h2>
 
-<h1>Check Result</h1>
+    <input type="text" id="studentId" placeholder="Enter Student ID">
 
-<input type="text"
-id="studentId"
-placeholder="Student ID">
+    <button onclick="getResult()">Search</button>
 
-<button onclick="getResult()">
-Check Result
-</button>
-
-<div id="result"></div>
-
+    <div id="result"></div>
 </div>
 
-<script type="module"
-src="student.js"></script>
-
+<script type="module" src="student.js"></script>
 </body>
 </html>
