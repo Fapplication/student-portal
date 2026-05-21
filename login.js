@@ -1,18 +1,24 @@
-import { supabase } from "./supabase.js"
+import { supabase } from './supabase.js'
 
-window.login = async function () {
+const loginForm = document.getElementById('loginForm')
 
-    const email = document.getElementById("email").value
-    const password = document.getElementById("password").value
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault()
 
-    const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-    })
+  const email = document.getElementById('loginEmail').value
+  const password = document.getElementById('loginPassword').value
 
-    if (error) {
-        document.getElementById("msg").innerText = error.message
-    } else {
-        window.location.href = "student.html"
-    }
-}
+  const { data, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('email', email)
+    .eq('password', password)
+    .single()
+
+  if (error || !data) {
+    alert('Invalid login credentials')
+  } else {
+    localStorage.setItem('student', JSON.stringify(data))
+    window.location.href = 'dashboard.html'
+  }
+})
