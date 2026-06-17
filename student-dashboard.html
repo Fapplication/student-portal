@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Portal · CE Department</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue:#2563EB; --blue-dk:#1E40AF;
+      --amber:#F59E0B; --green:#10B981;
+      --red:#EF4444; --purple:#7C3AED;
+      --sidebar-w:260px; --topbar-h:64px;
+      --radius:14px; --radius-sm:8px; --tr:.22s ease;
+    }
+    [data-theme="dark"]{
+      --bg:#0F172A; --bg2:#1E293B; --bg3:#334155;
+      --border:rgba(255,255,255,.08); --text:#F1F5F9;
+      --text2:#94A3B8; --card:rgba(30,41,59,.9);
+      --glass:rgba(255,255,255,.05);
+    }
+    [data-theme="light"]{
+      --bg:#F8FAFC; --bg2:#fff; --bg3:#E2E8F0;
+      --border:rgba(0,0,0,.08); --text:#0F172A;
+      --text2:#64748B; --card:#fff; --glass:rgba(0,0,0,.03);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;transition:background var(--tr),color var(--tr)}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sidebar-w);min-height:100vh;background:#0F172A;display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;transition:transform var(--tr);border-right:1px solid rgba(255,255,255,.05)}
+    .sidebar.collapsed{transform:translateX(calc(-1 * var(--sidebar-w)))}
+    .sb-header{padding:20px 20px 0;display:flex;align-items:center;gap:10px}
+    .sb-logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563EB,#7C3AED);display:grid;place-items:center;font-size:16px;flex-shrink:0}
+    .sb-brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:#fff}
+    .profile-card{margin:18px 12px;padding:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius)}
+    .profile-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);display:grid;place-items:center;font-size:20px;margin-bottom:10px}
+    .profile-name{font-size:13px;font-weight:600;color:#fff}
+    .profile-id{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+    .profile-badge{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:999px;background:rgba(37,99,235,.20);border:1px solid rgba(37,99,235,.35);font-size:11px;color:#93C5FD;font-weight:500}
+    .sb-nav{flex:1;padding:8px 12px;overflow-y:auto;scrollbar-width:none}
+    .sb-nav::-webkit-scrollbar{display:none}
+    .nav-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);padding:14px 8px 6px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.55);font-size:14px;font-weight:500;transition:all var(--tr);position:relative;margin-bottom:2px;text-decoration:none;user-select:none}
+    .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+    .nav-item.active{background:linear-gradient(135deg,rgba(37,99,235,.25),rgba(124,58,237,.15));color:#fff;box-shadow:0 0 0 1px rgba(37,99,235,.30)}
+    .nav-item.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:999px;background:linear-gradient(#2563EB,#7C3AED)}
+    .nav-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+    .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px}
+    .sb-footer{padding:14px 12px;border-top:1px solid rgba(255,255,255,.05)}
+    .sb-footer .nav-item{color:rgba(255,255,255,.40)}
+    .sb-overlay{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+    .sb-overlay.show{display:block}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left var(--tr)}
+    .main.expanded{margin-left:0}
+    .topbar{height:var(--topbar-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:30;backdrop-filter:blur(12px)}
+    .topbar-toggle{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:6px;border-radius:8px;transition:background var(--tr)}
+    .topbar-toggle:hover{background:var(--glass)}
+    .topbar-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px}
+    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+    .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:transparent;cursor:pointer;display:grid;place-items:center;font-size:16px;color:var(--text2);transition:all var(--tr);position:relative}
+    .icon-btn:hover{background:var(--bg3);color:var(--text)}
+    .notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--bg2)}
+    .page-content{padding:24px;flex:1}
+    .page{display:none}
+    .page.active{display:block;animation:fadeIn .28s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── STAT GRID ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:transform var(--tr),box-shadow var(--tr)}
+    .stat-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.15)}
+    .stat-card::after{content:'';position:absolute;top:0;right:0;width:72px;height:72px;border-radius:50%;opacity:.08;transform:translate(18px,-18px)}
+    .stat-card.blue::after{background:var(--blue)}.stat-card.amber::after{background:var(--amber)}
+    .stat-card.green::after{background:var(--green)}.stat-card.red::after{background:var(--red)}
+    .stat-card.purple::after{background:var(--purple)}
+    .stat-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:17px;margin-bottom:10px}
+    .stat-icon.blue{background:rgba(37,99,235,.12)}.stat-icon.amber{background:rgba(245,158,11,.12)}
+    .stat-icon.green{background:rgba(16,185,129,.12)}.stat-icon.red{background:rgba(239,68,68,.12)}
+    .stat-icon.purple{background:rgba(124,58,237,.12)}
+    .stat-val{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;line-height:1}
+    .stat-lbl{font-size:12px;color:var(--text2);margin-top:4px}
+
+    /* ── PANEL ── */
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+    .panel-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    .panel-title{font-size:15px;font-weight:600}
+    .panel-body{padding:18px}
+    .panel-link{font-size:13px;color:var(--blue);font-weight:500;cursor:pointer}
+    .panel-link:hover{text-decoration:underline}
+
+    /* ── CONTENT GRID ── */
+    .content-grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    @media(max-width:1024px){.content-grid{grid-template-columns:1fr}}
+
+    /* ── TABLE ── */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    thead th{text-align:left;padding:10px 14px;color:var(--text2);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+    tbody td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover{background:var(--glass)}
+
+    /* ── MARK BAR ── */
+    .mark-bar-wrap{display:flex;align-items:center;gap:10px;min-width:140px}
+    .mark-bar{flex:1;height:7px;background:var(--bg3);border-radius:999px;overflow:hidden}
+    .mark-fill{height:100%;border-radius:999px;transition:width 1.2s ease}
+    .mark-fill.excellent{background:linear-gradient(90deg,#10B981,#34D399)}
+    .mark-fill.good{background:linear-gradient(90deg,#2563EB,#60A5FA)}
+    .mark-fill.average{background:linear-gradient(90deg,#F59E0B,#FCD34D)}
+    .mark-fill.poor{background:linear-gradient(90deg,#EF4444,#F87171)}
+    .mark-num{font-size:13px;font-weight:700;min-width:36px;text-align:right}
+
+    /* ── RANK BADGE ── */
+    .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:13px;font-weight:700;flex-shrink:0}
+    .rank-1{background:linear-gradient(135deg,#F59E0B,#FBBF24);color:#000}
+    .rank-2{background:linear-gradient(135deg,#94A3B8,#CBD5E1);color:#000}
+    .rank-3{background:linear-gradient(135deg,#B45309,#D97706);color:#fff}
+    .rank-other{background:var(--bg3);color:var(--text2)}
+    .rank-mine{background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;box-shadow:0 0 12px rgba(37,99,235,.4)}
+
+    /* ── SCORE PILL ── */
+    .score-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .score-ex{background:rgba(16,185,129,.15);color:#10B981}
+    .score-gd{background:rgba(37,99,235,.15);color:#3B82F6}
+    .score-av{background:rgba(245,158,11,.15);color:#F59E0B}
+    .score-pr{background:rgba(239,68,68,.12);color:#EF4444}
+
+    /* ── PROGRESS ── */
+    .prog-wrap{margin-bottom:14px}
+    .prog-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;color:var(--text2)}
+    .prog-label strong{color:var(--text)}
+    .prog-bar{height:8px;background:var(--bg3);border-radius:999px;overflow:hidden}
+    .prog-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2563EB,#7C3AED);transition:width 1.2s ease}
+
+    /* ── GPA RING ── */
+    .gpa-ring-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 0}
+    .gpa-ring{width:130px;height:130px;position:relative;display:grid;place-items:center}
+    .gpa-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+    .gpa-num{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;z-index:1}
+    .gpa-sub{font-size:11px;color:var(--text2);z-index:1}
+    .gpa-meta{display:flex;gap:22px;margin-top:14px;font-size:13px;text-align:center}
+    .gpa-meta-val{font-weight:700;font-size:1rem}
+    .gpa-meta-lbl{font-size:11px;color:var(--text2)}
+
+    /* ── RANKING TABLE ── */
+    .rank-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .rank-row:last-child{border-bottom:none}
+    .rank-row.my-row{background:rgba(37,99,235,.08);margin:0 -18px;padding:10px 18px;border-radius:10px;border:1px solid rgba(37,99,235,.2)}
+    .rank-info{flex:1;min-width:0}
+    .rank-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rank-id{font-size:11px;color:var(--text2);margin-top:1px}
+
+    /* ── FORM ── */
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 13px;border-radius:var(--radius-sm);background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border .2s}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue)}
+    .form-group textarea{resize:vertical;min-height:90px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all var(--tr)}
+    .btn:active{transform:scale(.97)}
+    .btn-primary{background:linear-gradient(135deg,#2563EB,#1E40AF);color:#fff}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.4)}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:var(--bg3)}
+    .btn-full{width:100%;justify-content:center}
+
+    /* ── CHAT ── */
+    .chat-window{height:340px;overflow-y:auto;padding:14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+    .chat-window::-webkit-scrollbar{display:none}
+    .chat-msg{display:flex;gap:9px;max-width:86%}
+    .chat-msg.user{margin-left:auto;flex-direction:row-reverse}
+    .chat-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:13px}
+    .chat-av.bot{background:linear-gradient(135deg,#2563EB,#7C3AED)}
+    .chat-av.user{background:linear-gradient(135deg,#F59E0B,#FBBF24)}
+    .chat-bubble{padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.6;background:var(--bg2);border:1px solid var(--border)}
+    .chat-msg.user .chat-bubble{background:var(--blue);color:#fff;border-color:var(--blue)}
+    .chat-input-row{display:flex;gap:8px}
+    .chat-input-row input{flex:1;padding:10px 13px;border-radius:var(--radius-sm);background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none}
+    .chat-input-row input:focus{border-color:var(--blue)}
+    .chat-send{padding:10px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:15px}
+
+    /* ── FEED ── */
+    .feed-item{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .feed-item:last-child{border-bottom:none}
+    .feed-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+    .feed-title{font-size:13px;font-weight:500}
+    .feed-meta{font-size:11px;color:var(--text2);margin-top:2px}
+    .feed-item.unread .feed-title{font-weight:600}
+
+    /* ── COURSE CARDS ── */
+    .course-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+    .course-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all var(--tr)}
+    .course-card:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 12px 28px rgba(37,99,235,.12)}
+    .course-code{font-size:10px;font-weight:700;color:var(--blue);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+    .course-name{font-size:14px;font-weight:600;margin-bottom:4px}
+    .course-meta{font-size:12px;color:var(--text2);margin-bottom:12px}
+
+    /* ── ASSESSMENT BREAKDOWN ── */
+    .assess-row{display:grid;grid-template-columns:1fr 70px 90px 90px;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;font-size:13px}
+    .assess-row:last-child{border-bottom:none}
+    .assess-row.header{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase}
+    .assess-row span:not(:first-child){text-align:center}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:22px;right:22px;z-index:999;padding:11px 18px;border-radius:var(--radius-sm);background:#1E293B;border:1px solid rgba(255,255,255,.10);color:#fff;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:all .3s ease}
+    .toast.show{transform:translateY(0);opacity:1}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px){
+      .sidebar{transform:translateX(calc(-1 * var(--sidebar-w)))}
+      .sidebar.mobile-open{transform:translateX(0)}
+      .main{margin-left:0!important}
+      .page-content{padding:14px}
+      .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+      .assess-row{grid-template-columns:1fr 60px 70px}
+      .assess-row .assess-wt{display:none}
+    }
+    @media(max-width:480px){
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .stat-val{font-size:1.4rem}
+    }
+  </style>
+</head>
+<body>
+
+<div class="sb-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">🏛️</div>
+    <span class="sb-brand">CE Portal</span>
+  </div>
+  <div class="profile-card">
+    <div class="profile-av">🎓</div>
+    <div class="profile-name" id="sb-name">Loading…</div>
+    <div class="profile-id" id="sb-id">—</div>
+    <div class="profile-badge">Student</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-label">Main</div>
+    <a class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a class="nav-item" onclick="showPage('marks',this)"><span class="nav-icon">📊</span>My Marks</a>
+    <a class="nav-item" onclick="showPage('ranking',this)"><span class="nav-icon">🏆</span>Class Ranking</a>
+    <a class="nav-item" onclick="showPage('tests',this)"><span class="nav-icon">📝</span>Online Tests</a>
+    <a class="nav-item" onclick="showPage('notes',this)"><span class="nav-icon">📚</span>Lecture Notes</a>
+    <a class="nav-item" onclick="showPage('ai',this)"><span class="nav-icon">🤖</span>AI Assistant</a>
+    <div class="nav-label">Communication</div>
+    <a class="nav-item" onclick="showPage('notifications',this)"><span class="nav-icon">🔔</span>Notifications<span class="nav-badge" id="notif-count" style="display:none">0</span></a>
+    <a class="nav-item" onclick="showPage('complaints',this)"><span class="nav-icon">📨</span>Complaints</a>
+    <div class="nav-label">More</div>
+    <a class="nav-item" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sb-footer">
+    <a class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span>Logout</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <button class="topbar-toggle" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="showPage('notifications',null)">🔔<span class="notif-dot" id="notif-dot" style="display:none"></span></button>
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-icon blue">📈</div><div class="stat-val" id="d-avg">—</div><div class="stat-lbl">Average Mark /100</div></div>
+        <div class="stat-card purple"><div class="stat-icon purple">🏆</div><div class="stat-val" id="d-rank">—</div><div class="stat-lbl">Class Rank</div></div>
+        <div class="stat-card amber"><div class="stat-icon amber">📚</div><div class="stat-val" id="d-courses">—</div><div class="stat-lbl">Active Courses</div></div>
+        <div class="stat-card green"><div class="stat-icon green">🎯</div><div class="stat-val" id="d-top">—</div><div class="stat-lbl">Top Score /100</div></div>
+      </div>
+      <div class="content-grid">
+        <div>
+          <!-- Recent marks -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Recent Marks</span><span class="panel-link" onclick="showPage('marks',null)">View all →</span></div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Course</th><th>Assessment</th><th>Mark /100</th><th>Progress</th></tr></thead>
+                  <tbody id="recent-marks-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Course progress -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Course Progress</span></div>
+            <div class="panel-body" id="course-progress"></div>
+          </div>
+        </div>
+        <div>
+          <!-- GPA ring -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">GPA Overview</span></div>
+            <div class="panel-body">
+              <div class="gpa-ring-wrap">
+                <div class="gpa-ring">
+                  <svg viewBox="0 0 130 130" width="130" height="130">
+                    <circle cx="65" cy="65" r="54" fill="none" stroke="var(--bg3)" stroke-width="12"/>
+                    <circle cx="65" cy="65" r="54" fill="none" stroke="url(#gg)"
+                      stroke-width="12" stroke-linecap="round"
+                      stroke-dasharray="339.3" stroke-dashoffset="339.3"
+                      id="gpa-arc" style="transition:stroke-dashoffset 1.3s ease"/>
+                    <defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#7C3AED"/>
+                    </linearGradient></defs>
+                  </svg>
+                  <div style="z-index:1;text-align:center">
+                    <div class="gpa-num" id="gpa-num">—</div>
+                    <div class="gpa-sub">/ 4.0</div>
+                  </div>
+                </div>
+                <div class="gpa-meta">
+                  <div><div class="gpa-meta-val" id="sgpa-val">—</div><div class="gpa-meta-lbl">Sem GPA</div></div>
+                  <div><div class="gpa-meta-val" id="rank-val">—</div><div class="gpa-meta-lbl">Class Rank</div></div>
+                  <div><div class="gpa-meta-val" id="cr-val">—</div><div class="gpa-meta-lbl">Credits</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Announcements -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Announcements</span><span class="panel-link" onclick="showPage('notifications',null)">All →</span></div>
+            <div class="panel-body" id="dash-notifs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY MARKS -->
+    <div class="page" id="page-marks">
+      <div class="course-cards" id="marks-cards" style="margin-bottom:18px"></div>
+      <div class="panel" id="marks-detail" style="display:none">
+        <div class="panel-header">
+          <span class="panel-title" id="detail-title">Assessment Breakdown</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="document.getElementById('marks-detail').style.display='none'">✕ Close</button>
+        </div>
+        <div class="panel-body" id="detail-body"></div>
+      </div>
+    </div>
+
+    <!-- CLASS RANKING -->
+    <div class="page" id="page-ranking">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🏆 Class Ranking</span>
+          <select id="rank-course-sel" style="padding:7px 12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:13px;outline:none" onchange="renderRanking()">
+            <option value="all">All Courses (Overall)</option>
+          </select>
+        </div>
+        <div class="panel-body" id="ranking-body"></div>
+      </div>
+    </div>
+
+    <!-- TESTS -->
+    <div class="page" id="page-tests">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Available Tests</span></div>
+        <div class="panel-body" id="tests-list"></div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="page" id="page-notes">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Lecture Notes & Resources</span></div>
+        <div class="panel-body" id="notes-list"></div>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="page" id="page-ai">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">🤖 AI Academic Assistant</span><span style="font-size:12px;color:var(--text2)">Powered by Claude</span></div>
+        <div class="panel-body">
+          <div class="chat-window" id="chat-win">
+            <div class="chat-msg"><div class="chat-av bot">🤖</div><div class="chat-bubble">Hi! I'm your CE academic assistant. Ask me about your marks, ranking, courses or GPA.</div></div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-inp" placeholder="Ask about your marks, ranking, GPA…" onkeydown="if(event.key==='Enter')sendChat()" />
+            <button class="chat-send" onclick="sendChat()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Notifications</span><button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="markAllRead()">Mark all read</button></div>
+        <div class="panel-body" id="notif-body"></div>
+      </div>
+    </div>
+
+    <!-- COMPLAINTS -->
+    <div class="page" id="page-complaints">
+      <div class="content-grid">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Submit Complaint</span></div>
+          <div class="panel-body">
+            <div class="form-group"><label>Course</label><select id="c-course" onchange="loadComplaintAssessments()"><option value="">— Select —</option></select></div>
+            <div class="form-group"><label>Assessment</label><select id="c-assess"><option value="">— Select —</option></select></div>
+            <div class="form-group"><label>Your Mark</label><input type="number" id="c-mark" placeholder="Mark you received" /></div>
+            <div class="form-group"><label>Expected Mark</label><input type="number" id="c-expected" placeholder="Mark you expected" /></div>
+            <div class="form-group"><label>Reason</label><textarea id="c-reason" placeholder="Describe the issue clearly…"></textarea></div>
+            <button class="btn btn-primary btn-full" onclick="submitComplaint()">📨 Submit Complaint</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">My Complaints</span></div>
+          <div class="panel-body" id="complaint-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="panel" style="max-width:500px">
+        <div class="panel-header"><span class="panel-title">Account Settings</span></div>
+        <div class="panel-body">
+          <div class="form-group"><label>Full Name</label><input type="text" id="set-name" /></div>
+          <div class="form-group"><label>Email</label><input type="email" id="set-email" /></div>
+          <div class="form-group"><label>Telegram Username</label><input type="text" id="set-tg" placeholder="@username" /></div>
+          <div class="form-group"><label>Current Password</label><input type="password" id="set-old-pw" placeholder="Enter current password" /></div>
+          <div class="form-group"><label>New Password</label><input type="password" id="set-new-pw" placeholder="Leave blank to keep current" /></div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── CONFIG ── */
+const SCRIPT_URL = localStorage.getItem('script_url') || 'YOUR_APPS_SCRIPT_URL_HERE';
+
+/* ── AUTH GUARD ── */
+const role   = sessionStorage.getItem('portal_role');
+const userId = sessionStorage.getItem('portal_user');
+const uName  = sessionStorage.getItem('portal_name');
+if (role !== 'student') window.location.href = 'index.html';
+
+/* ── LOCAL STORE ── */
+const Store = {
+  key:'ce_portal_users',
+  getAll(){ try{ return JSON.parse(localStorage.getItem(this.key)||'{}') }catch{ return {} } },
+  get(id){ return this.getAll()[id]||null },
+};
+
+/* ── DEMO DATA ── */
+const DEMO = {
+  name: uName || 'Abomsa Dida Wake',
+  id:   userId || 'UGR/82533/16',
+  cgpa: 3.45, sgpa: 3.60, credits: 18,
+  courses: [
+    { code:'CE401', name:'Highway Engineering', credits:4, instructor:'Dr. Tesfaye',
+      assessments:[
+        {name:'Assignment 1', weight:5,  mark:85},
+        {name:'Assignment 2', weight:5,  mark:80},
+        {name:'Quiz 1',       weight:10, mark:72},
+        {name:'Quiz 2',       weight:10, mark:68},
+        {name:'Mid Exam',     weight:20, mark:75},
+        {name:'Project',      weight:10, mark:90},
+        {name:'Final Exam',   weight:40, mark:78},
+      ]},
+    { code:'CE402', name:'Structural Analysis', credits:4, instructor:'Dr. Alemu',
+      assessments:[
+        {name:'Assignment 1', weight:10, mark:90},
+        {name:'Quiz 1',       weight:10, mark:82},
+        {name:'Mid Exam',     weight:20, mark:86},
+        {name:'Final Exam',   weight:60, mark:85},
+      ]},
+    { code:'CE403', name:'Geotechnical Engineering', credits:3, instructor:'Dr. Bekele',
+      assessments:[
+        {name:'Assignment 1', weight:10, mark:70},
+        {name:'Quiz 1',       weight:10, mark:60},
+        {name:'Mid Exam',     weight:30, mark:62},
+        {name:'Final Exam',   weight:50, mark:66},
+      ]},
+    { code:'CE404', name:'Fluid Mechanics', credits:3, instructor:'Dr. Girma',
+      assessments:[
+        {name:'Assignment 1', weight:10, mark:95},
+        {name:'Mid Exam',     weight:30, mark:90},
+        {name:'Final Exam',   weight:60, mark:91},
+      ]},
+  ],
+  /* Simulated classmates for ranking */
+  classmates: [
+    {id:'UGR/82534/16', name:'Birtukan Haile',    avg:91},
+    {id:'UGR/82535/16', name:'Chala Gemechu',     avg:52},
+    {id:'UGR/82536/16', name:'Dereje Tadesse',    avg:76},
+    {id:'UGR/82537/16', name:'Enat Bekele',       avg:94},
+    {id:'UGR/82538/16', name:'Fekadu Solomon',    avg:44},
+    {id:'UGR/82539/16', name:'Girma Wolde',       avg:71},
+    {id:'UGR/82540/16', name:'Hana Tesfaye',      avg:88},
+    {id:'UGR/82541/16', name:'Iddris Mohammed',   avg:79},
+    {id:'UGR/82542/16', name:'Jelila Kedir',      avg:83},
+    {id:'UGR/82543/16', name:'Kebede Alemu',      avg:67},
+  ],
+  notifications:[
+    {type:'grade',  title:'Mid Exam marks published — CE401', time:'2h ago',  read:false},
+    {type:'note',   title:'New lecture notes — CE402',        time:'1d ago',  read:false},
+    {type:'notice', title:'Department meeting — Thursday 2pm',time:'2d ago',  read:true },
+  ],
+  complaints:[],
+};
+
+/* ── HELPERS ── */
+function calcAvg(course){
+  return Math.round(course.assessments.reduce((s,a)=>(s+(a.mark/100)*a.weight),0)*10)/10;
+}
+
+function markClass(m){
+  if(m>=85) return 'excellent';
+  if(m>=70) return 'good';
+  if(m>=50) return 'average';
+  return 'poor';
+}
+
+function scorePillClass(m){
+  if(m>=85) return 'score-ex';
+  if(m>=70) return 'score-gd';
+  if(m>=50) return 'score-av';
+  return 'score-pr';
+}
+
+function scoreLabel(m){
+  if(m>=85) return 'Excellent';
+  if(m>=70) return 'Good';
+  if(m>=50) return 'Average';
+  return 'Below Average';
+}
+
+function getGrade(pct){
+  if(pct>=90) return{l:'A',  gp:4.00};
+  if(pct>=85) return{l:'A-', gp:3.75};
+  if(pct>=80) return{l:'B+', gp:3.50};
+  if(pct>=75) return{l:'B',  gp:3.00};
+  if(pct>=70) return{l:'B-', gp:2.75};
+  if(pct>=65) return{l:'C+', gp:2.50};
+  if(pct>=60) return{l:'C',  gp:2.00};
+  if(pct>=50) return{l:'D',  gp:1.00};
+  return{l:'F',gp:0.00};
+}
+
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('sb-name').textContent = DEMO.name;
+  document.getElementById('sb-id').textContent   = DEMO.id;
+
+  // Try load from API
+  loadData();
+
+  // Populate selects
+  const rankSel = document.getElementById('rank-course-sel');
+  const cSel    = document.getElementById('c-course');
+  DEMO.courses.forEach((c,i)=>{
+    rankSel.innerHTML += `<option value="${i}">${c.code} — ${c.name}</option>`;
+    cSel.innerHTML    += `<option value="${i}">${c.code} — ${c.name}</option>`;
+  });
+});
+
+async function loadData(){
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getStudentResults&studentId=${encodeURIComponent(userId)}&token=${sessionStorage.getItem('portal_token')}`);
+    const data = await res.json();
+    if(data.success && data.student){
+      Object.assign(DEMO, data.student);
+    }
+  } catch { /* use demo */ }
+  renderAll();
+}
+
+function renderAll(){
+  renderDashboard();
+  renderMarksCards();
+  renderRanking();
+  renderNotifications();
+  renderComplaintList();
+  renderTests();
+  renderNotes();
+}
+
+/* ── DASHBOARD ── */
+function renderDashboard(){
+  const avgs    = DEMO.courses.map(c=>calcAvg(c));
+  const overall = Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length*10)/10;
+  const topMark = Math.max(...avgs);
+
+  // My rank among classmates
+  const myAvg  = overall;
+  const all    = [...DEMO.classmates.map(s=>s.avg), myAvg].sort((a,b)=>b-a);
+  const myRank = all.indexOf(myAvg)+1;
+  const total  = all.length;
+
+  document.getElementById('d-avg').textContent    = overall;
+  document.getElementById('d-rank').textContent   = `#${myRank}`;
+  document.getElementById('d-courses').textContent= DEMO.courses.length;
+  document.getElementById('d-top').textContent    = topMark;
+  document.getElementById('rank-val').textContent = `#${myRank}/${total}`;
+
+  // GPA
+  const cgpa = DEMO.cgpa||3.45;
+  document.getElementById('gpa-num').textContent = cgpa.toFixed(2);
+  document.getElementById('sgpa-val').textContent= (DEMO.sgpa||cgpa).toFixed(2);
+  document.getElementById('cr-val').textContent  = DEMO.credits||18;
+  setTimeout(()=>{
+    const arc=document.getElementById('gpa-arc');
+    const circ=2*Math.PI*54;
+    if(arc) arc.style.strokeDashoffset = circ - circ*(cgpa/4);
+  },300);
+
+  // Recent marks table
+  const tbody = document.getElementById('recent-marks-body');
+  tbody.innerHTML = DEMO.courses.slice(0,3).map(c=>{
+    const last = c.assessments[c.assessments.length-1];
+    const mc   = markClass(last.mark);
+    return `<tr>
+      <td><strong>${c.code}</strong><br><span style="color:var(--text2);font-size:11px">${c.name}</span></td>
+      <td>${last.name}</td>
+      <td>
+        <span class="score-pill ${scorePillClass(last.mark)}">${last.mark}/100</span>
+      </td>
+      <td>
+        <div class="mark-bar-wrap">
+          <div class="mark-bar"><div class="mark-fill ${mc}" style="width:${last.mark}%"></div></div>
+          <span class="mark-num" style="font-size:11px;color:var(--text2)">${scoreLabel(last.mark)}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Course progress
+  document.getElementById('course-progress').innerHTML = DEMO.courses.map(c=>{
+    const avg=calcAvg(c);
+    return `<div class="prog-wrap">
+      <div class="prog-label"><span>${c.code} — ${c.name}</span><strong>${avg}/100</strong></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${avg}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Announcements
+  const icons={grade:'📊',note:'📚',notice:'📢'};
+  document.getElementById('dash-notifs').innerHTML = DEMO.notifications.slice(0,3).map(n=>`
+    <div class="feed-item ${n.read?'':'unread'}">
+      <div class="feed-icon" style="background:var(--glass)">${icons[n.type]||'🔔'}</div>
+      <div><div class="feed-title">${n.title}</div><div class="feed-meta">${n.time}</div></div>
+    </div>`).join('');
+
+  // Notif badge
+  const unread=DEMO.notifications.filter(n=>!n.read).length;
+  document.getElementById('notif-count').textContent=unread;
+  document.getElementById('notif-count').style.display=unread?'inline':'none';
+  document.getElementById('notif-dot').style.display=unread?'block':'none';
+}
+
+/* ── MARKS CARDS ── */
+function renderMarksCards(){
+  document.getElementById('marks-cards').innerHTML = DEMO.courses.map((c,i)=>{
+    const avg=calcAvg(c);
+    const mc =markClass(avg);
+    return `<div class="course-card" onclick="showCourseDetail(${i})">
+      <div class="course-code">${c.code}</div>
+      <div class="course-name">${c.name}</div>
+      <div class="course-meta">👨‍🏫 ${c.instructor} · ${c.credits} Cr Hrs</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700">${avg}<span style="font-size:1rem;color:var(--text2)">/100</span></span>
+        <span class="score-pill ${scorePillClass(avg)}">${scoreLabel(avg)}</span>
+      </div>
+      <div class="mark-bar" style="height:8px"><div class="mark-fill ${mc}" style="width:${avg}%"></div></div>
+      <div style="font-size:11px;color:var(--blue);margin-top:8px">Tap for full breakdown →</div>
+    </div>`;
+  }).join('');
+}
+
+function showCourseDetail(idx){
+  const c   = DEMO.courses[idx];
+  const avg = calcAvg(c);
+  document.getElementById('detail-title').textContent = `${c.code} — ${c.name}`;
+
+  const rows = c.assessments.map(a=>{
+    const contrib=((a.mark/100)*a.weight).toFixed(1);
+    return `<div class="assess-row">
+      <span>${a.name}</span>
+      <span class="assess-wt" style="color:var(--text2)">${a.weight}%</span>
+      <span>
+        <div class="mark-bar-wrap">
+          <div class="mark-bar"><div class="mark-fill ${markClass(a.mark)}" style="width:${a.mark}%"></div></div>
+          <span class="mark-num">${a.mark}</span>
+        </div>
+      </span>
+      <span><span class="score-pill ${scorePillClass(a.mark)}">${contrib} pts</span></span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="assess-row header">
+      <span>Assessment</span>
+      <span class="assess-wt">Weight</span>
+      <span>Mark /100</span>
+      <span>Contribution</span>
+    </div>
+    ${rows}
+    <div style="margin-top:14px;padding:14px;background:var(--glass);border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:2px">Overall Mark</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700">${avg}<span style="font-size:1rem;color:var(--text2)">/100</span></div>
+      </div>
+      <div style="text-align:right">
+        <span class="score-pill ${scorePillClass(avg)}" style="font-size:14px;padding:6px 14px">${scoreLabel(avg)}</span>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px">${getGrade(avg).l} · ${getGrade(avg).gp} GP</div>
+      </div>
+    </div>`;
+
+  document.getElementById('marks-detail').style.display='';
+  document.getElementById('marks-detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ── CLASS RANKING ── */
+function renderRanking(){
+  const selVal = document.getElementById('rank-course-sel').value;
+  const avgs   = DEMO.courses.map(c=>calcAvg(c));
+  const myOverall = Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length*10)/10;
+
+  // Build full ranking list
+  let myScore;
+  if(selVal==='all'){
+    myScore = myOverall;
+  } else {
+    myScore = calcAvg(DEMO.courses[parseInt(selVal)]);
+  }
+
+  const classmates = DEMO.classmates.map(s=>({...s}));
+  // Vary classmate scores per course in demo
+  if(selVal!=='all'){
+    classmates.forEach(s=>{ s.avg=Math.min(100,Math.max(30,s.avg+Math.floor(Math.random()*10-5))); });
+  }
+
+  const everyone = [
+    {id:userId, name:DEMO.name+' (You)', avg:myScore, isMe:true},
+    ...classmates
+  ].sort((a,b)=>b.avg-a.avg);
+
+  const myRank = everyone.findIndex(s=>s.isMe)+1;
+  const total  = everyone.length;
+
+  // Update topbar rank
+  document.getElementById('rank-val').textContent=`#${myRank}/${total}`;
+  document.getElementById('d-rank').textContent=`#${myRank}`;
+
+  const rankBadgeClass = i=>{
+    if(i===1) return 'rank-1';
+    if(i===2) return 'rank-2';
+    if(i===3) return 'rank-3';
+    return 'rank-other';
+  };
+
+  document.getElementById('ranking-body').innerHTML = `
+    <div style="margin-bottom:16px;padding:14px;background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(124,58,237,.10));border:1px solid rgba(37,99,235,.25);border-radius:10px;display:flex;align-items:center;gap:14px">
+      <div class="rank-badge rank-mine">#${myRank}</div>
+      <div>
+        <div style="font-size:14px;font-weight:600">${DEMO.name}</div>
+        <div style="font-size:12px;color:var(--text2)">Your position · ${myScore}/100</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700">${myScore}<span style="font-size:.9rem;color:var(--text2)">/100</span></div>
+        <span class="score-pill ${scorePillClass(myScore)}">${scoreLabel(myScore)}</span>
+      </div>
+    </div>
+    ${everyone.map((s,i)=>{
+      const rank=i+1;
+      const isMe=s.isMe;
+      return `<div class="rank-row ${isMe?'my-row':''}">
+        <div class="rank-badge ${isMe?'rank-mine':rankBadgeClass(rank)}">${rank<=3?['🥇','🥈','🥉'][rank-1]:rank}</div>
+        <div class="rank-info">
+          <div class="rank-name">${s.name}</div>
+          <div class="rank-id">${s.id}</div>
+        </div>
+        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem">${s.avg}<span style="font-size:.75rem;color:var(--text2)">/100</span></span>
+          <div class="mark-bar" style="width:80px;height:5px"><div class="mark-fill ${markClass(s.avg)}" style="width:${s.avg}%"></div></div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+/* ── NOTIFICATIONS ── */
+function renderNotifications(){
+  const icons={grade:'📊',note:'📚',notice:'📢'};
+  document.getElementById('notif-body').innerHTML = DEMO.notifications.map(n=>`
+    <div class="feed-item ${n.read?'':'unread'}">
+      <div class="feed-icon" style="background:var(--glass)">${icons[n.type]||'🔔'}</div>
+      <div style="flex:1"><div class="feed-title">${n.title}</div><div class="feed-meta">${n.time}</div></div>
+      ${!n.read?'<div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:4px"></div>':''}
+    </div>`).join('') || '<p style="color:var(--text2);font-size:14px">No notifications.</p>';
+}
+
+function markAllRead(){
+  DEMO.notifications.forEach(n=>n.read=true);
+  renderNotifications();
+  document.getElementById('notif-count').style.display='none';
+  document.getElementById('notif-dot').style.display='none';
+  showToast('✅ All marked as read.');
+}
+
+/* ── COMPLAINTS ── */
+function loadComplaintAssessments(){
+  const idx=document.getElementById('c-course').value;
+  const sel=document.getElementById('c-assess');
+  sel.innerHTML='<option value="">— Select —</option>';
+  if(idx==='') return;
+  DEMO.courses[parseInt(idx)].assessments.forEach(a=>sel.innerHTML+=`<option>${a.name}</option>`);
+}
+
+async function submitComplaint(){
+  const cIdx   =document.getElementById('c-course').value;
+  const assess =document.getElementById('c-assess').value;
+  const mark   =document.getElementById('c-mark').value;
+  const expected=document.getElementById('c-expected').value;
+  const reason =document.getElementById('c-reason').value.trim();
+  if(!cIdx||!assess||!reason){showToast('⚠ Fill all required fields.');return;}
+
+  const course=DEMO.courses[parseInt(cIdx)].code;
+  try{
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'submitComplaint',studentId:userId,course,assessment:assess,score:mark,expected,reason})});
+  }catch{}
+
+  DEMO.complaints.push({course,assessment:assess,mark,expected,reason,status:'pending',date:'Today'});
+  renderComplaintList();
+  document.getElementById('c-reason').value='';
+  showToast('✅ Complaint submitted!');
+}
+
+function renderComplaintList(){
+  document.getElementById('complaint-list').innerHTML = DEMO.complaints.length
+    ? DEMO.complaints.map(c=>`
+      <div class="feed-item">
+        <div class="feed-icon" style="background:rgba(239,68,68,.10)">📨</div>
+        <div style="flex:1">
+          <div class="feed-title">${c.course} · ${c.assessment}</div>
+          <div class="feed-meta">Mark: ${c.mark}/100 · Expected: ${c.expected}/100</div>
+          <div class="feed-meta">${c.reason?.slice(0,60)}…</div>
+        </div>
+        <span style="padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;background:${c.status==='pending'?'rgba(245,158,11,.15)':'rgba(16,185,129,.15)'};color:${c.status==='pending'?'#F59E0B':'#10B981'}">${c.status}</span>
+      </div>`).join('')
+    : '<p style="color:var(--text2);font-size:14px">No complaints yet.</p>';
+}
+
+/* ── TESTS ── */
+function renderTests(){
+  const tests=[
+    {code:'CE401',name:'Quiz 2 — Highway Engineering',date:'Mar 20, 2026',duration:'45 min',status:'upcoming'},
+    {code:'CE402',name:'Mid Exam — Structural Analysis',date:'Mar 3, 2026',duration:'90 min',status:'completed'},
+  ];
+  document.getElementById('tests-list').innerHTML = tests.map(t=>`
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1"><div style="font-weight:600;font-size:14px">${t.name}</div><div style="font-size:12px;color:var(--text2);margin-top:3px">📅 ${t.date} · ⏱ ${t.duration}</div></div>
+      <span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:${t.status==='upcoming'?'rgba(37,99,235,.15)':'rgba(16,185,129,.15)'};color:${t.status==='upcoming'?'#60A5FA':'#10B981'}">${t.status}</span>
+      ${t.status==='upcoming'?`<button class="btn btn-primary" style="font-size:12px;padding:7px 14px">Start →</button>`:''}
+    </div>`).join('');
+}
+
+/* ── NOTES ── */
+function renderNotes(){
+  const notes=[
+    {course:'CE401',name:'Chapter 5 — Pavement Design.pdf',size:'2.4 MB',date:'Mar 10'},
+    {course:'CE402',name:'Structural Analysis Module 3.pdf',size:'1.8 MB',date:'Mar 8'},
+    {course:'CE403',name:'Soil Mechanics Lecture Slides.pptx',size:'4.1 MB',date:'Mar 5'},
+  ];
+  document.getElementById('notes-list').innerHTML = notes.map(n=>`
+    <div style="display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:26px">📄</div>
+      <div style="flex:1"><div style="font-weight:500;font-size:14px">${n.name}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${n.course} · ${n.size} · ${n.date}</div></div>
+      <button class="btn btn-outline" style="font-size:12px;padding:7px 12px">⬇ Download</button>
+    </div>`).join('');
+}
+
+/* ── AI CHAT ── */
+async function sendChat(){
+  const inp=document.getElementById('chat-inp');
+  const msg=inp.value.trim(); if(!msg) return;
+  inp.value='';
+  appendChat('user',msg);
+  const thinking=appendChat('bot','⋯ thinking…');
+  const avgs=DEMO.courses.map(c=>calcAvg(c));
+  const myAvg=Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length*10)/10;
+  const all=[...DEMO.classmates.map(s=>s.avg),myAvg].sort((a,b)=>b-a);
+  const myRank=all.indexOf(myAvg)+1;
+  const ctx=JSON.stringify({name:DEMO.name,avg:myAvg,rank:myRank,total:all.length,courses:DEMO.courses.map(c=>({code:c.code,name:c.name,avg:calcAvg(c)}))});
+  try{
+    const res=await fetch(`${SCRIPT_URL}?action=aiChat&msg=${encodeURIComponent(msg)}&context=${encodeURIComponent(ctx)}`);
+    const d=await res.json();
+    thinking.textContent=d.reply||ruleReply(msg,myAvg,myRank);
+  }catch{ thinking.textContent=ruleReply(msg,myAvg,myRank); }
+}
+
+function ruleReply(msg,avg,rank){
+  const m=msg.toLowerCase();
+  if(m.includes('rank'))    return `You are currently ranked #${rank} in your class with an average of ${avg}/100.`;
+  if(m.includes('mark')||m.includes('score')) return `Your overall average mark is ${avg}/100. Open My Marks to see the full breakdown per course.`;
+  if(m.includes('course'))  return `You are enrolled in ${DEMO.courses.length} courses this semester.`;
+  if(m.includes('gpa'))     return `Your CGPA is ${DEMO.cgpa} / 4.0. GPA is calculated from weighted marks across all courses.`;
+  if(m.includes('hi')||m.includes('hello')) return `Hello ${DEMO.name.split(' ')[0]}! 👋 Ask me about your marks, ranking or courses.`;
+  return 'I can help with marks, rankings, GPA and course information. Please ask a specific question!';
+}
+
+function appendChat(role,text){
+  const win=document.getElementById('chat-win');
+  const d=document.createElement('div');
+  d.className=`chat-msg ${role==='user'?'user':''}`;
+  d.innerHTML=`<div class="chat-av ${role}">${role==='user'?'🎓':'🤖'}</div><div class="chat-bubble">${text}</div>`;
+  win.appendChild(d); win.scrollTop=win.scrollHeight;
+  return d.querySelector('.chat-bubble');
+}
+
+/* ── SETTINGS ── */
+function saveSettings(){
+  const newPw=document.getElementById('set-new-pw').value;
+  const oldPw=document.getElementById('set-old-pw').value;
+  if(newPw && !oldPw){ showToast('⚠ Enter your current password to change it.'); return; }
+  if(newPw && newPw.length<6){ showToast('⚠ New password must be at least 6 characters.'); return; }
+
+  if(newPw && oldPw){
+    const localUser=Store.get('s_'+userId);
+    if(localUser && localUser.pw!==oldPw){ showToast('❌ Current password is incorrect.'); return; }
+    if(localUser){ localUser.pw=newPw; const all=Store.getAll(); all['s_'+userId]=localUser; localStorage.setItem(Store.key,JSON.stringify(all)); }
+  }
+  showToast('✅ Settings saved!');
+}
+
+/* ── UI HELPERS ── */
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',marks:'My Marks',ranking:'Class Ranking',tests:'Online Tests',notes:'Lecture Notes',ai:'AI Assistant',notifications:'Notifications',complaints:'Complaints',settings:'Settings'};
+  document.getElementById('page-title').textContent=titles[id]||id;
+  if(window.innerWidth<768) closeSidebar();
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar'),ov=document.getElementById('overlay');
+  if(window.innerWidth<768){sb.classList.toggle('mobile-open');ov.classList.toggle('show');}
+  else{sb.classList.toggle('collapsed');document.getElementById('main').classList.toggle('expanded');}
+}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('mobile-open');document.getElementById('overlay').classList.remove('show');}
+
+function toggleTheme(){
+  const h=document.documentElement,next=h.dataset.theme==='dark'?'light':'dark';
+  h.dataset.theme=next;document.getElementById('theme-btn').textContent=next==='dark'?'🌙':'☀️';
+  localStorage.setItem('theme',next);
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+function logout(){sessionStorage.clear();window.location.href='index.html';}
+
+// Restore theme
+const savedTheme=localStorage.getItem('theme');
+if(savedTheme){document.documentElement.dataset.theme=savedTheme;document.getElementById('theme-btn').textContent=savedTheme==='dark'?'🌙':'☀️';}
+
+// Auto logout
+let timer;
+function resetTimer(){clearTimeout(timer);timer=setTimeout(()=>{showToast('Session expired.');setTimeout(logout,2000);},30*60*1000);}
+['mousemove','keydown','click','touchstart'].forEach(e=>document.addEventListener(e,resetTimer));
+resetTimer();
+</script>
+</body>
+</html>

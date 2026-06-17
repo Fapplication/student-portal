@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CE Department Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue:#2563EB; --blue-dk:#1E40AF; --amber:#F59E0B;
+      --green:#10B981; --red:#EF4444; --purple:#7C3AED;
+      --radius:16px; --radius-sm:10px; --tr:.22s ease;
+    }
+    [data-theme="dark"]{
+      --bg:#0F172A; --bg2:#1E293B; --bg3:#334155;
+      --border:rgba(255,255,255,.08); --text:#F1F5F9;
+      --text2:#94A3B8; --card:rgba(30,41,59,.9); --glass:rgba(255,255,255,.05);
+    }
+    [data-theme="light"]{
+      --bg:#F8FAFC; --bg2:#fff; --bg3:#E2E8F0;
+      --border:rgba(0,0,0,.08); --text:#0F172A;
+      --text2:#64748B; --card:#fff; --glass:rgba(0,0,0,.03);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background var(--tr),color var(--tr)}
+
+    /* BG */
+    .bg-canvas{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0F172A,#1E1B4B,#0F172A);overflow:hidden}
+    .bg-canvas::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(37,99,235,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.05) 1px,transparent 1px);background-size:48px 48px}
+    .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.2;animation:drift 18s ease-in-out infinite alternate}
+    .blob-1{width:500px;height:500px;background:#2563EB;top:-100px;left:-120px}
+    .blob-2{width:380px;height:380px;background:#7C3AED;bottom:-80px;right:-100px;animation-delay:-6s}
+    .blob-3{width:280px;height:280px;background:#F59E0B;top:50%;left:60%;animation-delay:-12s}
+    @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.08)}}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 5%;background:rgba(15,23,42,.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#2563EB,#7C3AED);display:grid;place-items:center;font-size:18px}
+    .nav-brand span{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:#fff}
+    .nav-right{display:flex;gap:8px}
+    .nav-btn{padding:8px 18px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all var(--tr)}
+    .nav-btn.ghost{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8)}
+    .nav-btn.ghost:hover{background:rgba(255,255,255,.14);color:#fff}
+    .nav-btn.primary{background:linear-gradient(135deg,#2563EB,#1E40AF);color:#fff;box-shadow:0 0 18px rgba(37,99,235,.35)}
+    .nav-btn.primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(37,99,235,.5)}
+
+    /* HERO */
+    .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 5% 80px}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.35);font-size:13px;font-weight:500;color:#93C5FD;margin-bottom:24px;animation:fadeUp .6s ease both}
+    .badge-dot{width:8px;height:8px;border-radius:50%;background:#60A5FA;animation:pulse-dot 2s ease infinite}
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+    .hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.2rem,6vw,4.5rem);font-weight:700;line-height:1.1;letter-spacing:-1px;animation:fadeUp .6s .1s ease both}
+    .hero h1 .accent{background:linear-gradient(135deg,#60A5FA,#A78BFA,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero-sub{max-width:520px;margin:18px auto 0;font-size:clamp(.95rem,2vw,1.1rem);color:rgba(255,255,255,.6);line-height:1.7;animation:fadeUp .6s .2s ease both}
+    .hero-cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:40px;animation:fadeUp .6s .3s ease both}
+    .cta-btn{display:inline-flex;align-items:center;gap:9px;padding:13px 26px;border-radius:12px;font-size:15px;font-weight:600;text-decoration:none;transition:all .25s;cursor:pointer;border:none;font-family:inherit}
+    .cta-blue{background:linear-gradient(135deg,#2563EB,#1E40AF);color:#fff;box-shadow:0 4px 20px rgba(37,99,235,.4)}
+    .cta-blue:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.5)}
+    .cta-glass{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;backdrop-filter:blur(10px)}
+    .cta-glass:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
+
+    /* STATS */
+    .stats-bar{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;gap:1px;margin:0 5% 80px}
+    .stat-cell{flex:1 1 160px;max-width:240px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);padding:24px 20px;text-align:center;transition:background .2s,transform .2s}
+    .stat-cell:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+    .stat-cell:last-child{border-radius:0 var(--radius) var(--radius) 0}
+    .stat-cell:hover{background:rgba(37,99,235,.10);transform:translateY(-3px)}
+    .stat-num{font-family:'Space Grotesk',sans-serif;font-size:1.9rem;font-weight:700;color:#fff}
+    .stat-lbl{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px}
+
+    /* ROLE CARDS */
+    .section{position:relative;z-index:1;padding:60px 5%}
+    .section-label{text-align:center;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#60A5FA;margin-bottom:10px}
+    .section-title{text-align:center;font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,3vw,2.5rem);font-weight:700;margin-bottom:40px}
+    .role-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .role-card{border-radius:20px;padding:32px;position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s;cursor:pointer}
+    .role-card:hover{transform:translateY(-5px);box-shadow:0 28px 56px rgba(0,0,0,.4)}
+    .role-card.student{background:linear-gradient(135deg,#1E3A8A,#1E40AF);border:1px solid rgba(96,165,250,.2)}
+    .role-card.instructor{background:linear-gradient(135deg,#78350F,#B45309);border:1px solid rgba(251,191,36,.2)}
+    .role-icon{font-size:2.8rem;margin-bottom:14px}
+    .role-card h3{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;margin-bottom:8px}
+    .role-card p{font-size:13px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:20px}
+    .role-card ul{list-style:none;margin-bottom:24px}
+    .role-card ul li{font-size:13px;color:rgba(255,255,255,.8);padding:3px 0}
+    .role-card.student ul li::before{content:'✓ ';color:#60A5FA;font-weight:700}
+    .role-card.instructor ul li::before{content:'✓ ';color:#FCD34D;font-weight:700}
+    .role-action-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:600;background:rgba(255,255,255,.15);color:#fff;border:none;cursor:pointer;font-family:inherit;transition:all .2s;backdrop-filter:blur(8px)}
+    .role-action-btn:hover{background:rgba(255,255,255,.25);transform:translateX(4px)}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);display:grid;place-items:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .modal-overlay.open{opacity:1;pointer-events:all}
+    .modal{background:#1E293B;border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:36px;width:100%;max-width:440px;transform:translateY(20px) scale(.97);transition:transform .25s;position:relative;max-height:90vh;overflow-y:auto}
+    .modal-overlay.open .modal{transform:translateY(0) scale(1)}
+    .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.08);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:grid;place-items:center}
+    .modal-close:hover{background:rgba(255,255,255,.14)}
+    .modal h2{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;margin-bottom:4px}
+    .modal-sub{font-size:13px;color:#94A3B8;margin-bottom:24px}
+
+    /* TABS inside modal */
+    .modal-tabs{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.05);border-radius:10px;margin-bottom:22px}
+    .modal-tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;color:#94A3B8;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all var(--tr)}
+    .modal-tab.active{background:rgba(255,255,255,.10);color:#fff}
+
+    /* FORM */
+    .form-group{margin-bottom:15px}
+    .form-group label{display:block;font-size:12px;font-weight:500;color:#94A3B8;margin-bottom:5px}
+    .form-group .inp-wrap{position:relative}
+    .form-group input,.form-group select{width:100%;padding:11px 14px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border .2s,box-shadow .2s}
+    .form-group input:focus,.form-group select:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+    .form-group input::placeholder{color:rgba(255,255,255,.3)}
+    .form-group select option{background:#1E293B;color:#fff}
+    .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;padding:4px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .submit-btn{width:100%;padding:13px;border-radius:10px;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;margin-top:4px}
+    .submit-btn.blue{background:linear-gradient(135deg,#2563EB,#1E40AF)}
+    .submit-btn.blue:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+    .submit-btn.amber{background:linear-gradient(135deg,#F59E0B,#B45309)}
+    .submit-btn.amber:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,158,11,.4)}
+    .err-msg{font-size:12px;color:#F87171;margin-top:8px;display:none;text-align:center}
+    .success-msg{font-size:12px;color:#6EE7B7;margin-top:8px;display:none;text-align:center}
+    .divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:rgba(255,255,255,.25);font-size:12px}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.10)}
+
+    /* FOOTER */
+    footer{position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.07);padding:36px 5%;text-align:center;color:rgba(255,255,255,.3);font-size:12px}
+
+    /* ANIMATIONS */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+
+    /* RESPONSIVE */
+    @media(max-width:640px){
+      .nav-right .nav-btn.ghost{display:none}
+      .stat-cell:first-child,.stat-cell:last-child{border-radius:var(--radius)}
+      .form-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-logo">🏛️</div>
+    <span>CE Portal</span>
+  </a>
+  <div class="nav-right">
+    <button class="nav-btn ghost" onclick="openModal('student')">Student</button>
+    <button class="nav-btn primary" onclick="openModal('instructor')">Instructor</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge"><span class="badge-dot"></span>Department of Civil Engineering · AAiT</div>
+  <h1>Your <span class="accent">Academic Portal</span></h1>
+  <p class="hero-sub">Access marks, rankings, online tests, lecture notes and instructor communication — all in one place, in real time.</p>
+  <div class="hero-cta">
+    <button class="cta-btn cta-glass" onclick="openModal('student')">🎓 Student Login / Register</button>
+    <button class="cta-btn cta-blue" onclick="openModal('instructor')">👨‍🏫 Instructor Login</button>
+  </div>
+</section>
+
+<div class="stats-bar reveal">
+  <div class="stat-cell"><div class="stat-num" data-count="1200">0</div><div class="stat-lbl">Enrolled Students</div></div>
+  <div class="stat-cell"><div class="stat-num" data-count="48">0</div><div class="stat-lbl">Active Courses</div></div>
+  <div class="stat-cell"><div class="stat-num" data-count="24">0</div><div class="stat-lbl">Instructors</div></div>
+  <div class="stat-cell"><div class="stat-num" data-count="99">0</div><div class="stat-lbl">% Uptime</div></div>
+</div>
+
+<section class="section">
+  <div class="section-label">Access</div>
+  <div class="section-title reveal">Choose your role</div>
+  <div class="role-grid">
+    <div class="role-card student reveal" onclick="openModal('student')">
+      <div class="role-icon">🎓</div>
+      <h3>Student</h3>
+      <p>Register with your Student ID then log in to access your marks, rankings and academic progress.</p>
+      <ul>
+        <li>View marks out of 100</li>
+        <li>See your rank among classmates</li>
+        <li>Semester & cumulative GPA</li>
+        <li>Online test attempts</li>
+        <li>Raise and track complaints</li>
+      </ul>
+      <button class="role-action-btn">Student Login / Register →</button>
+    </div>
+    <div class="role-card instructor reveal" onclick="openModal('instructor')">
+      <div class="role-icon">👨‍🏫</div>
+      <h3>Instructor</h3>
+      <p>Manage courses, enter marks, publish results and communicate with students from one dashboard.</p>
+      <ul>
+        <li>Create & configure courses</li>
+        <li>Build assessment structures</li>
+        <li>Enter and publish marks</li>
+        <li>View class rankings</li>
+        <li>Analytics & distributions</li>
+      </ul>
+      <button class="role-action-btn">Instructor Login →</button>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 Department of Civil Engineering · Academic Portal · Built on Google Sheets + Apps Script</footer>
+
+<!-- ═══ STUDENT MODAL ═══ -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('student')">✕</button>
+    <h2>🎓 Student Portal</h2>
+    <p class="modal-sub">Login to your account or create a new one</p>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="s-tab-login" onclick="switchTab('student','login')">Login</button>
+      <button class="modal-tab" id="s-tab-register" onclick="switchTab('student','register')">Register</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="s-login">
+      <div class="form-group">
+        <label>Student ID</label>
+        <input type="text" id="s-login-id" placeholder="e.g. UGR/82533/16" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <input type="password" id="s-login-pw" placeholder="••••••••" autocomplete="current-password" />
+          <button class="pw-toggle" onclick="togglePw('s-login-pw',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:#94A3B8;cursor:pointer"><input type="checkbox" style="accent-color:#2563EB"> Remember me</label>
+        <a href="#" style="font-size:13px;color:#60A5FA">Forgot password?</a>
+      </div>
+      <button class="submit-btn blue" onclick="studentLogin()">Sign In</button>
+      <p class="err-msg" id="s-login-err"></p>
+      <div class="divider">or</div>
+      <p style="text-align:center;font-size:13px;color:#94A3B8">Don't have an account? <span style="color:#60A5FA;cursor:pointer" onclick="switchTab('student','register')">Register here</span></p>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="s-register" style="display:none">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="s-reg-fname" placeholder="Abomsa" />
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="s-reg-lname" placeholder="Dida" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Student ID *</label>
+        <input type="text" id="s-reg-id" placeholder="e.g. UGR/82533/16" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="s-reg-email" placeholder="you@student.aait.edu.et" />
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <select id="s-reg-dept">
+          <option>Civil Engineering</option>
+          <option>Electrical Engineering</option>
+          <option>Mechanical Engineering</option>
+          <option>Computer Engineering</option>
+          <option>Chemical Engineering</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Year of Study</label>
+        <select id="s-reg-year">
+          <option>1st Year</option>
+          <option>2nd Year</option>
+          <option>3rd Year</option>
+          <option>4th Year</option>
+          <option>5th Year</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Password * (min 6 characters)</label>
+        <div class="inp-wrap">
+          <input type="password" id="s-reg-pw" placeholder="Create a strong password" />
+          <button class="pw-toggle" onclick="togglePw('s-reg-pw',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <div class="inp-wrap">
+          <input type="password" id="s-reg-pw2" placeholder="Repeat your password" />
+          <button class="pw-toggle" onclick="togglePw('s-reg-pw2',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="submit-btn blue" onclick="studentRegister()">Create Account</button>
+      <p class="err-msg" id="s-reg-err"></p>
+      <p class="success-msg" id="s-reg-ok"></p>
+      <div class="divider">or</div>
+      <p style="text-align:center;font-size:13px;color:#94A3B8">Already have an account? <span style="color:#60A5FA;cursor:pointer" onclick="switchTab('student','login')">Login here</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INSTRUCTOR MODAL ═══ -->
+<div class="modal-overlay" id="modal-instructor">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('instructor')">✕</button>
+    <h2>👨‍🏫 Instructor Portal</h2>
+    <p class="modal-sub">Enter your faculty credentials to continue</p>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="i-tab-login" onclick="switchTab('instructor','login')">Login</button>
+      <button class="modal-tab" id="i-tab-register" onclick="switchTab('instructor','register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="i-login">
+      <div class="form-group">
+        <label>Instructor ID</label>
+        <input type="text" id="i-login-id" placeholder="e.g. INS/001/24" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <input type="password" id="i-login-pw" placeholder="••••••••" autocomplete="current-password" />
+          <button class="pw-toggle" onclick="togglePw('i-login-pw',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="submit-btn amber" onclick="instructorLogin()">Sign In</button>
+      <p class="err-msg" id="i-login-err"></p>
+      <div class="divider">or</div>
+      <p style="text-align:center;font-size:13px;color:#94A3B8">New instructor? <span style="color:#FCD34D;cursor:pointer" onclick="switchTab('instructor','register')">Register here</span></p>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="i-register" style="display:none">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="i-reg-fname" placeholder="Tesfaye" />
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="i-reg-lname" placeholder="Alemu" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Instructor ID *</label>
+        <input type="text" id="i-reg-id" placeholder="e.g. INS/001/24" />
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" id="i-reg-email" placeholder="you@aait.edu.et" />
+      </div>
+      <div class="form-group">
+        <label>Specialization</label>
+        <select id="i-reg-spec">
+          <option>Highway Engineering</option>
+          <option>Structural Engineering</option>
+          <option>Geotechnical Engineering</option>
+          <option>Fluid Mechanics</option>
+          <option>Construction Management</option>
+          <option>Environmental Engineering</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Password * (min 6 characters)</label>
+        <div class="inp-wrap">
+          <input type="password" id="i-reg-pw" placeholder="Create a strong password" />
+          <button class="pw-toggle" onclick="togglePw('i-reg-pw',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <div class="inp-wrap">
+          <input type="password" id="i-reg-pw2" placeholder="Repeat your password" />
+          <button class="pw-toggle" onclick="togglePw('i-reg-pw2',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="submit-btn amber" onclick="instructorRegister()">Create Account</button>
+      <p class="err-msg" id="i-reg-err"></p>
+      <p class="success-msg" id="i-reg-ok"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── CONFIG ── */
+const SCRIPT_URL = localStorage.getItem('script_url') || 'YOUR_APPS_SCRIPT_URL_HERE';
+
+/* ── LOCAL USER STORE (fallback when API not set) ── */
+const Store = {
+  key: 'ce_portal_users',
+  getAll(){ try{ return JSON.parse(localStorage.getItem(this.key)||'{}') }catch{ return {} } },
+  get(id){ return this.getAll()[id] || null },
+  save(id, data){ const all=this.getAll(); all[id]=data; localStorage.setItem(this.key, JSON.stringify(all)) },
+  exists(id){ return !!this.get(id) },
+};
+
+/* ── HELPERS ── */
+function togglePw(id, btn){
+  const inp=document.getElementById(id);
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+}
+
+function showErr(id, msg){
+  const el=document.getElementById(id);
+  el.textContent=msg; el.style.display='block';
+  setTimeout(()=>el.style.display='none', 4000);
+}
+
+function showSuccess(id, msg){
+  const el=document.getElementById(id);
+  el.textContent=msg; el.style.display='block';
+}
+
+function openModal(role){
+  document.getElementById('modal-'+role).classList.add('open');
+}
+function closeModal(role){
+  document.getElementById('modal-'+role).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click', e=>{ if(e.target===el) el.classList.remove('open') });
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+});
+
+function switchTab(role, tab){
+  const prefix = role==='student' ? 's' : 'i';
+  document.getElementById(`${prefix}-login`).style.display    = tab==='login'    ? '' : 'none';
+  document.getElementById(`${prefix}-register`).style.display = tab==='register' ? '' : 'none';
+  document.getElementById(`${prefix}-tab-login`).classList.toggle('active',   tab==='login');
+  document.getElementById(`${prefix}-tab-register`).classList.toggle('active', tab==='register');
+}
+
+/* ── STUDENT REGISTER ── */
+async function studentRegister(){
+  const fname = document.getElementById('s-reg-fname').value.trim();
+  const lname = document.getElementById('s-reg-lname').value.trim();
+  const id    = document.getElementById('s-reg-id').value.trim();
+  const email = document.getElementById('s-reg-email').value.trim();
+  const dept  = document.getElementById('s-reg-dept').value;
+  const year  = document.getElementById('s-reg-year').value;
+  const pw    = document.getElementById('s-reg-pw').value;
+  const pw2   = document.getElementById('s-reg-pw2').value;
+
+  if (!fname||!lname||!id||!pw)        { showErr('s-reg-err','Please fill in all required fields.'); return; }
+  if (pw.length < 6)                   { showErr('s-reg-err','Password must be at least 6 characters.'); return; }
+  if (pw !== pw2)                      { showErr('s-reg-err','Passwords do not match.'); return; }
+  if (!/^UGR\/\d+\/\d+$/.test(id) && id.length < 3) { showErr('s-reg-err','Enter a valid Student ID.'); return; }
+
+  // Try API first
+  if (SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+    try {
+      const res  = await fetch(SCRIPT_URL, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'registerStudent', id, fname, lname, email, dept, year, password:pw })
+      });
+      const data = await res.json();
+      if (!data.success) { showErr('s-reg-err', data.error||'Registration failed.'); return; }
+    } catch { /* fall through to local */ }
+  }
+
+  // Local store
+  if (Store.exists('s_'+id)) { showErr('s-reg-err','A student with this ID already exists.'); return; }
+  Store.save('s_'+id, { role:'student', id, name:`${fname} ${lname}`, email, dept, year, pw });
+
+  showSuccess('s-reg-ok', `✅ Account created! You can now login, ${fname}.`);
+  setTimeout(()=>{ switchTab('student','login'); document.getElementById('s-login-id').value=id; }, 2000);
+}
+
+/* ── INSTRUCTOR REGISTER ── */
+async function instructorRegister(){
+  const fname = document.getElementById('i-reg-fname').value.trim();
+  const lname = document.getElementById('i-reg-lname').value.trim();
+  const id    = document.getElementById('i-reg-id').value.trim();
+  const email = document.getElementById('i-reg-email').value.trim();
+  const spec  = document.getElementById('i-reg-spec').value;
+  const pw    = document.getElementById('i-reg-pw').value;
+  const pw2   = document.getElementById('i-reg-pw2').value;
+
+  if (!fname||!lname||!id||!email||!pw) { showErr('i-reg-err','Please fill in all required fields.'); return; }
+  if (pw.length < 6)                    { showErr('i-reg-err','Password must be at least 6 characters.'); return; }
+  if (pw !== pw2)                       { showErr('i-reg-err','Passwords do not match.'); return; }
+
+  if (SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+    try {
+      const res  = await fetch(SCRIPT_URL, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'registerInstructor', id, fname, lname, email, spec, password:pw })
+      });
+      const data = await res.json();
+      if (!data.success) { showErr('i-reg-err', data.error||'Registration failed.'); return; }
+    } catch {}
+  }
+
+  if (Store.exists('i_'+id)) { showErr('i-reg-err','An instructor with this ID already exists.'); return; }
+  Store.save('i_'+id, { role:'instructor', id, name:`Dr. ${fname} ${lname}`, email, spec, pw });
+
+  showSuccess('i-reg-ok', `✅ Account created! You can now login, Dr. ${lname}.`);
+  setTimeout(()=>{ switchTab('instructor','login'); document.getElementById('i-login-id').value=id; }, 2000);
+}
+
+/* ── STUDENT LOGIN ── */
+async function studentLogin(){
+  const id = document.getElementById('s-login-id').value.trim();
+  const pw = document.getElementById('s-login-pw').value;
+  if (!id||!pw) { showErr('s-login-err','Please fill in all fields.'); return; }
+
+  // Try API
+  if (SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=login&role=student&id=${encodeURIComponent(id)}&pw=${encodeURIComponent(pw)}`);
+      const data = await res.json();
+      if (data.success) {
+        sessionStorage.setItem('portal_role','student');
+        sessionStorage.setItem('portal_user', data.id||id);
+        sessionStorage.setItem('portal_name', data.name||id);
+        sessionStorage.setItem('portal_token', data.token||'');
+        window.location.href='student-dashboard.html'; return;
+      } else { showErr('s-login-err', data.error||'Login failed.'); return; }
+    } catch {}
+  }
+
+  // Local fallback
+  const user = Store.get('s_'+id);
+  if (!user)       { showErr('s-login-err','Student ID not found. Please register first.'); return; }
+  if (user.pw!==pw){ showErr('s-login-err','Incorrect password. Please try again.'); return; }
+
+  sessionStorage.setItem('portal_role','student');
+  sessionStorage.setItem('portal_user', id);
+  sessionStorage.setItem('portal_name', user.name||id);
+  sessionStorage.setItem('portal_token','local');
+  window.location.href='student-dashboard.html';
+}
+
+/* ── INSTRUCTOR LOGIN ── */
+async function instructorLogin(){
+  const id = document.getElementById('i-login-id').value.trim();
+  const pw = document.getElementById('i-login-pw').value;
+  if (!id||!pw) { showErr('i-login-err','Please fill in all fields.'); return; }
+
+  if (SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=login&role=instructor&id=${encodeURIComponent(id)}&pw=${encodeURIComponent(pw)}`);
+      const data = await res.json();
+      if (data.success) {
+        sessionStorage.setItem('portal_role','instructor');
+        sessionStorage.setItem('portal_user', data.id||id);
+        sessionStorage.setItem('portal_name', data.name||id);
+        sessionStorage.setItem('portal_token', data.token||'');
+        window.location.href='instructor-dashboard.html'; return;
+      } else { showErr('i-login-err', data.error||'Login failed.'); return; }
+    } catch {}
+  }
+
+  const user = Store.get('i_'+id);
+  if (!user)        { showErr('i-login-err','Instructor ID not found. Please register first.'); return; }
+  if (user.pw !== pw){ showErr('i-login-err','Incorrect password. Please try again.'); return; }
+
+  sessionStorage.setItem('portal_role','instructor');
+  sessionStorage.setItem('portal_user', id);
+  sessionStorage.setItem('portal_name', user.name||id);
+  sessionStorage.setItem('portal_token','local');
+  window.location.href='instructor-dashboard.html';
+}
+
+/* ── COUNTER ANIMATION ── */
+function animateCounter(el){
+  const target=parseInt(el.dataset.count);
+  const suffix=el.dataset.count==='99'?'%':'+';
+  const duration=1600; const step=target/(duration/16);
+  let current=0;
+  const timer=setInterval(()=>{
+    current=Math.min(current+step,target);
+    el.textContent=Math.round(current)+suffix;
+    if(current>=target) clearInterval(timer);
+  },16);
+}
+
+/* ── REVEAL OBSERVER ── */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(!entry.isIntersecting) return;
+    entry.target.classList.add('visible');
+    entry.target.querySelectorAll('[data-count]').forEach(c=>{
+      if(!c.dataset.animated){ c.dataset.animated='1'; animateCounter(c); }
+    });
+    obs.unobserve(entry.target);
+  });
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── AUTO OPEN ROLE FROM URL PARAM ── */
+const urlRole=new URLSearchParams(location.search).get('role');
+if(urlRole==='student') openModal('student');
+if(urlRole==='instructor') openModal('instructor');
+</script>
+</body>
+</html>

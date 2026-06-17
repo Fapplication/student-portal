@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>CE Department Portal</title>
+
+  <!-- Telegram Mini App SDK — REQUIRED -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════ TOKENS ═══════ */
+    :root {
+      --blue:   #2563EB; --blue-dk:#1E40AF;
+      --amber:  #F59E0B; --amber-dk:#B45309;
+      --green:  #10B981; --red:#EF4444;
+      --purple: #7C3AED;
+      --radius: 14px; --radius-sm:10px; --radius-xs:6px;
+      --tr: .2s ease;
+    }
+    [data-theme="dark"] {
+      --bg:#0F172A; --bg2:#1E293B; --bg3:#334155;
+      --border:rgba(255,255,255,.08);
+      --text:#F1F5F9; --text2:#94A3B8; --text3:#64748B;
+      --card:rgba(30,41,59,.9); --glass:rgba(255,255,255,.05);
+    }
+    [data-theme="light"] {
+      --bg:#F8FAFC; --bg2:#FFFFFF; --bg3:#E2E8F0;
+      --border:rgba(0,0,0,.08);
+      --text:#0F172A; --text2:#64748B; --text3:#94A3B8;
+      --card:#FFFFFF; --glass:rgba(0,0,0,.03);
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{height:100%;overflow:hidden}
+    body{
+      font-family:'Inter',sans-serif;
+      background:var(--bg); color:var(--text);
+      height:100%; overflow:hidden;
+      -webkit-font-smoothing:antialiased;
+      /* Telegram safe-area */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ═══════ APP SHELL ═══════ */
+    #app {
+      display:flex; flex-direction:column;
+      height:100vh; height:100dvh;
+      overflow:hidden;
+    }
+
+    /* ═══════ HEADER ═══════ */
+    .tg-header {
+      display:flex; align-items:center; gap:12px;
+      padding:14px 16px 12px;
+      background:var(--bg2);
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+      position:relative;
+    }
+    .tg-header-back {
+      width:34px; height:34px; border-radius:50%;
+      background:var(--glass); border:none;
+      color:var(--text2); font-size:18px; cursor:pointer;
+      display:grid; place-items:center;
+      transition:background var(--tr);
+      flex-shrink:0;
+    }
+    .tg-header-back:hover{background:var(--bg3)}
+    .tg-header-back.hidden{visibility:hidden; pointer-events:none}
+    .tg-header-title {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:17px; font-weight:700; flex:1;
+    }
+    .tg-header-subtitle {
+      font-size:12px; color:var(--text2); margin-top:1px;
+    }
+    .tg-header-right {
+      display:flex; align-items:center; gap:8px;
+    }
+    .hdr-btn {
+      width:34px; height:34px; border-radius:50%;
+      background:var(--glass); border:none;
+      color:var(--text2); font-size:15px; cursor:pointer;
+      display:grid; place-items:center;
+      position:relative;
+    }
+    .hdr-badge {
+      position:absolute; top:2px; right:2px;
+      width:8px; height:8px; border-radius:50%;
+      background:var(--red); border:2px solid var(--bg2);
+    }
+
+    /* ═══════ SCROLL AREA ═══════ */
+    .scroll-area {
+      flex:1; overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
+      padding-bottom:80px;
+    }
+    .scroll-area::-webkit-scrollbar{display:none}
+
+    /* ═══════ BOTTOM NAV ═══════ */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--bg2);
+      border-top:1px solid var(--border);
+      display:flex;
+      padding-bottom:env(safe-area-inset-bottom);
+      z-index:50; flex-shrink:0;
+    }
+    .nav-tab {
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; gap:3px;
+      padding:10px 4px 8px;
+      border:none; background:none;
+      color:var(--text3); font-size:10px;
+      font-weight:500; cursor:pointer;
+      font-family:'Inter',sans-serif;
+      transition:color var(--tr);
+      position:relative;
+    }
+    .nav-tab .tab-icon{font-size:20px; line-height:1}
+    .nav-tab.active{color:var(--blue)}
+    .nav-tab.active .tab-icon{
+      filter:drop-shadow(0 0 6px rgba(37,99,235,.5));
+    }
+    .nav-tab .tab-dot {
+      position:absolute; top:8px; right:calc(50% - 14px);
+      width:7px; height:7px; border-radius:50%;
+      background:var(--red); border:1.5px solid var(--bg2);
+    }
+
+    /* ═══════ PAGE ═══════ */
+    .page{display:none; padding:16px;}
+    .page.active{display:block; animation:fadeIn .22s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ═══════ CARDS ═══════ */
+    .card{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); overflow:hidden;
+      margin-bottom:14px;
+    }
+    .card-header{
+      padding:14px 16px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .card-title{font-size:14px; font-weight:600}
+    .card-body{padding:16px}
+
+    /* ═══════ STAT GRID ═══════ */
+    .stat-grid{
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:10px; margin-bottom:14px;
+    }
+    .stat-cell{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:14px 12px;
+      position:relative; overflow:hidden;
+    }
+    .stat-cell::after{
+      content:''; position:absolute; top:0; right:0;
+      width:50px; height:50px; border-radius:50%;
+      opacity:.08; transform:translate(14px,-14px);
+    }
+    .stat-cell.blue::after{background:var(--blue)}
+    .stat-cell.amber::after{background:var(--amber)}
+    .stat-cell.green::after{background:var(--green)}
+    .stat-cell.red::after{background:var(--red)}
+    .stat-cell-icon{font-size:20px; margin-bottom:6px}
+    .stat-cell-val{
+      font-family:'Space Grotesk',sans-serif;
+      font-size:1.5rem; font-weight:700; line-height:1;
+    }
+    .stat-cell-lbl{font-size:11px; color:var(--text2); margin-top:3px}
+
+    /* ═══════ LIST ITEMS ═══════ */
+    .list-item{
+      display:flex; align-items:center; gap:12px;
+      padding:13px 16px;
+      border-bottom:1px solid var(--border);
+    }
+    .list-item:last-child{border-bottom:none}
+    .list-icon{
+      width:38px; height:38px; border-radius:10px;
+      display:grid; place-items:center;
+      font-size:18px; flex-shrink:0;
+    }
+    .list-content{flex:1; min-width:0}
+    .list-title{font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .list-sub{font-size:12px; color:var(--text2); margin-top:2px}
+    .list-right{flex-shrink:0; text-align:right}
+
+    /* ═══════ GRADE BADGES ═══════ */
+    .gb{display:inline-block; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700}
+    .gb-A{background:rgba(16,185,129,.15);color:#10B981}
+    .gb-B{background:rgba(37,99,235,.15);color:#3B82F6}
+    .gb-C{background:rgba(245,158,11,.15);color:#F59E0B}
+    .gb-D{background:rgba(239,68,68,.12);color:#EF4444}
+    .gb-F{background:rgba(239,68,68,.22);color:#EF4444}
+
+    /* ═══════ PROGRESS ═══════ */
+    .prog-wrap{margin-bottom:12px}
+    .prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px}
+    .prog-label b{color:var(--text)}
+    .prog-bar{height:7px;background:var(--bg3);border-radius:999px;overflow:hidden}
+    .prog-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2563EB,#7C3AED);transition:width 1.2s ease}
+
+    /* ═══════ GPA RING ═══════ */
+    .gpa-ring-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 0}
+    .gpa-ring{width:130px;height:130px;position:relative;display:grid;place-items:center}
+    .gpa-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+    .gpa-center{z-index:1;text-align:center}
+    .gpa-num{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700}
+    .gpa-sub{font-size:11px;color:var(--text2)}
+    .gpa-meta{display:flex;gap:28px;margin-top:12px;font-size:13px;text-align:center}
+    .gpa-meta-val{font-weight:700;font-size:1rem}
+    .gpa-meta-lbl{font-size:11px;color:var(--text2)}
+
+    /* ═══════ BUTTONS ═══════ */
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:11px 18px;border-radius:var(--radius-sm);
+      font-size:14px;font-weight:600;border:none;
+      cursor:pointer;font-family:'Inter',sans-serif;
+      transition:all var(--tr);text-decoration:none;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.96)}
+    .btn-primary{background:linear-gradient(135deg,#2563EB,#1E40AF);color:#fff}
+    .btn-amber{background:linear-gradient(135deg,#F59E0B,#B45309);color:#fff}
+    .btn-green{background:linear-gradient(135deg,#10B981,#047857);color:#fff}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn-full{width:100%;justify-content:center;margin-bottom:10px}
+
+    /* ═══════ FORM ═══════ */
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+    .form-control{
+      width:100%;padding:10px 13px;border-radius:var(--radius-xs);
+      background:var(--bg3);border:1px solid var(--border);
+      color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
+      outline:none;transition:border-color var(--tr);
+    }
+    .form-control:focus{border-color:var(--blue)}
+    textarea.form-control{resize:vertical;min-height:80px}
+    select.form-control{-webkit-appearance:none;cursor:pointer}
+
+    /* ═══════ CHAT ═══════ */
+    .chat-wrap{display:flex;flex-direction:column;height:calc(100dvh - 130px)}
+    .chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+    .chat-msgs::-webkit-scrollbar{display:none}
+    .chat-msg{display:flex;gap:8px;max-width:88%}
+    .chat-msg.user{margin-left:auto;flex-direction:row-reverse}
+    .chat-av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+    .chat-av.bot{background:linear-gradient(135deg,#2563EB,#7C3AED)}
+    .chat-av.user{background:linear-gradient(135deg,#F59E0B,#FBBF24)}
+    .chat-bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.55;background:var(--bg2);border:1px solid var(--border)}
+    .chat-msg.user .chat-bubble{background:var(--blue);color:#fff;border-color:var(--blue)}
+    .chat-bar{display:flex;gap:8px;padding:10px 12px;background:var(--bg2);border-top:1px solid var(--border)}
+    .chat-bar input{flex:1;padding:9px 12px;border-radius:var(--radius-xs);background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none}
+    .chat-bar input:focus{border-color:var(--blue)}
+    .chat-send{width:38px;height:38px;border-radius:50%;background:var(--blue);border:none;color:#fff;font-size:16px;cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+
+    /* ═══════ SKELETON ═══════ */
+    .sk{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg2) 50%,var(--bg3) 75%);background-size:200%;animation:sk 1.5s infinite;border-radius:6px}
+    @keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
+
+    /* ═══════ SPLASH / LOGIN ═══════ */
+    #splash{
+      position:fixed;inset:0;z-index:200;
+      background:var(--bg);
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      padding:32px 24px;
+      text-align:center;
+    }
+    .splash-logo{
+      width:80px;height:80px;border-radius:22px;
+      background:linear-gradient(135deg,#2563EB,#7C3AED);
+      display:grid;place-items:center;font-size:36px;
+      margin-bottom:20px;
+      box-shadow:0 12px 32px rgba(37,99,235,.4);
+    }
+    .splash-title{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;margin-bottom:8px}
+    .splash-sub{font-size:14px;color:var(--text2);margin-bottom:36px;line-height:1.6}
+    .role-cards{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px}
+    .role-card-btn{
+      padding:16px 20px;border-radius:var(--radius);border:none;
+      cursor:pointer;font-family:'Inter',sans-serif;
+      display:flex;align-items:center;gap:14px;
+      transition:transform .15s,box-shadow .15s;
+      text-align:left;
+    }
+    .role-card-btn:active{transform:scale(.97)}
+    .role-card-btn.student{background:linear-gradient(135deg,#1E3A8A,#1E40AF);color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.3)}
+    .role-card-btn.instructor{background:linear-gradient(135deg,#78350F,#B45309);color:#fff;box-shadow:0 6px 20px rgba(245,158,11,.3)}
+    .role-card-btn .r-icon{font-size:28px;flex-shrink:0}
+    .role-card-btn .r-label{font-size:15px;font-weight:700}
+    .role-card-btn .r-sub{font-size:12px;opacity:.75;margin-top:2px}
+
+    /* login form inside splash */
+    #login-form{display:none;width:100%;max-width:320px}
+    #login-form .login-back{background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:20px;display:flex;align-items:center;gap:6px}
+    #login-form h2{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;margin-bottom:4px}
+    #login-form p{font-size:13px;color:var(--text2);margin-bottom:20px}
+    .login-err{font-size:12px;color:var(--red);margin-top:8px;display:none}
+
+    /* ═══════ NOTIFICATION ITEMS ═══════ */
+    .notif-unread .list-title{font-weight:600}
+    .notif-unread .list-title::after{content:'•';color:var(--blue);margin-left:6px;font-size:16px}
+
+    /* ═══════ COMPLAINT STATUS ═══════ */
+    .status-pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600}
+    .status-pending{background:rgba(245,158,11,.15);color:#F59E0B}
+    .status-resolved{background:rgba(16,185,129,.15);color:#10B981}
+
+    /* ═══════ TOAST ═══════ */
+    #tg-toast{
+      position:fixed;top:env(safe-area-inset-top,16px);left:16px;right:16px;
+      z-index:999;padding:12px 16px;border-radius:var(--radius-sm);
+      background:#1E293B;border:1px solid rgba(255,255,255,.10);
+      color:#F1F5F9;font-size:13px;font-weight:500;
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+      transform:translateY(-80px);opacity:0;
+      transition:all .3s ease;
+    }
+    #tg-toast.show{transform:translateY(0);opacity:1}
+  </style>
+</head>
+<body>
+
+<!-- ════ SPLASH / LOGIN ════ -->
+<div id="splash">
+  <div class="splash-logo">🏛️</div>
+  <div class="splash-title">CE Portal</div>
+  <div class="splash-sub">Department of Civil Engineering<br/>Academic Management System</div>
+
+  <div class="role-cards" id="role-cards">
+    <button class="role-card-btn student" onclick="showLoginForm('student')">
+      <span class="r-icon">🎓</span>
+      <div><div class="r-label">Student Login</div><div class="r-sub">View grades, GPA & tests</div></div>
+    </button>
+    <button class="role-card-btn instructor" onclick="showLoginForm('instructor')">
+      <span class="r-icon">👨‍🏫</span>
+      <div><div class="r-label">Instructor Login</div><div class="r-sub">Manage courses & grades</div></div>
+    </button>
+  </div>
+
+  <div id="login-form">
+    <button class="login-back" onclick="backToRoles()">← Back</button>
+    <h2 id="login-heading">Student Login</h2>
+    <p id="login-sub">Enter your university credentials</p>
+    <div class="form-group">
+      <label id="id-label">Student ID</label>
+      <input class="form-control" id="login-id" placeholder="e.g. UGR/82533/16" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-control" type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-full" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="login-err">Invalid credentials. Please try again.</div>
+  </div>
+</div>
+
+<!-- ════ MAIN APP ════ -->
+<div id="app" style="display:none">
+
+  <!-- Header -->
+  <div class="tg-header">
+    <button class="tg-header-back hidden" id="back-btn" onclick="goBack()">←</button>
+    <div style="flex:1">
+      <div class="tg-header-title" id="hdr-title">Dashboard</div>
+      <div class="tg-header-subtitle" id="hdr-sub"></div>
+    </div>
+    <div class="tg-header-right">
+      <button class="hdr-btn" onclick="navTo('notifications')">🔔<span class="hdr-badge" id="hdr-badge" style="display:none"></span></button>
+    </div>
+  </div>
+
+  <!-- Scroll area -->
+  <div class="scroll-area" id="scroll-area">
+
+    <!-- ══ STUDENT PAGES ══ -->
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard" style="padding:14px">
+      <div class="stat-grid" id="dash-stats">
+        <div class="stat-cell blue"><div class="stat-cell-icon">📈</div><div class="stat-cell-val" id="s-cgpa">—</div><div class="stat-cell-lbl">CGPA</div></div>
+        <div class="stat-cell amber"><div class="stat-cell-icon">📚</div><div class="stat-cell-val" id="s-courses">—</div><div class="stat-cell-lbl">Courses</div></div>
+        <div class="stat-cell green"><div class="stat-cell-icon">🎯</div><div class="stat-cell-val" id="s-avg">—</div><div class="stat-cell-lbl">Avg Score</div></div>
+        <div class="stat-cell red"><div class="stat-cell-icon">📨</div><div class="stat-cell-val" id="s-complaints">—</div><div class="stat-cell-lbl">Complaints</div></div>
+      </div>
+
+      <!-- GPA Ring -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">GPA Overview</span></div>
+        <div class="card-body">
+          <div class="gpa-ring-wrap">
+            <div class="gpa-ring">
+              <svg viewBox="0 0 130 130" width="130" height="130">
+                <circle cx="65" cy="65" r="54" fill="none" stroke="var(--bg3)" stroke-width="12"/>
+                <circle cx="65" cy="65" r="54" fill="none" stroke="url(#g1)"
+                  stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="339.3" stroke-dashoffset="339.3"
+                  id="gpa-arc" style="transition:stroke-dashoffset 1.3s ease"/>
+                <defs>
+                  <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#2563EB"/>
+                    <stop offset="100%" stop-color="#7C3AED"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="gpa-center">
+                <div class="gpa-num" id="gpa-num">—</div>
+                <div class="gpa-sub">/ 4.0</div>
+              </div>
+            </div>
+            <div class="gpa-meta">
+              <div><div class="gpa-meta-val" id="sgpa-val">—</div><div class="gpa-meta-lbl">Semester GPA</div></div>
+              <div><div class="gpa-meta-val" id="cr-val">—</div><div class="gpa-meta-lbl">Credit Hrs</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent grades -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Grades</span>
+          <span style="font-size:12px;color:var(--blue);cursor:pointer" onclick="navTo('marks')">See all →</span>
+        </div>
+        <div id="recent-grades-list"></div>
+      </div>
+
+      <!-- Announcements -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Announcements</span>
+          <span style="font-size:12px;color:var(--blue);cursor:pointer" onclick="navTo('notifications')">All →</span>
+        </div>
+        <div id="dash-announcements"></div>
+      </div>
+    </div>
+
+    <!-- Marks -->
+    <div class="page" id="page-marks" style="padding:14px">
+      <div id="marks-list"></div>
+    </div>
+
+    <!-- Course detail (sub-page) -->
+    <div class="page" id="page-course-detail" style="padding:14px">
+      <div id="course-detail-body"></div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="page" id="page-notifications" style="padding:0">
+      <div class="card" style="margin:14px;margin-bottom:0">
+        <div class="card-header">
+          <span class="card-title">Notifications</span>
+          <span style="font-size:12px;color:var(--blue);cursor:pointer" onclick="markAllRead()">Mark all read</span>
+        </div>
+        <div id="notif-list"></div>
+      </div>
+    </div>
+
+    <!-- Complaints -->
+    <div class="page" id="page-complaints" style="padding:14px">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Submit Complaint</span></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Course</label>
+            <select class="form-control" id="c-course" onchange="loadComplaintAssessments()">
+              <option value="">— Select course —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Assessment</label>
+            <select class="form-control" id="c-assessment"><option value="">— Select assessment —</option></select>
+          </div>
+          <div class="form-group">
+            <label>Your Score</label>
+            <input class="form-control" type="number" id="c-score" placeholder="Obtained score" />
+          </div>
+          <div class="form-group">
+            <label>Expected Score</label>
+            <input class="form-control" type="number" id="c-expected" placeholder="Expected score" />
+          </div>
+          <div class="form-group">
+            <label>Reason</label>
+            <textarea class="form-control" id="c-reason" placeholder="Describe the issue clearly…"></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="submitComplaint()">📨 Submit Complaint</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">My Complaints</span></div>
+        <div id="complaint-list"></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page" id="page-settings" style="padding:14px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Account</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Display Name</label><input class="form-control" id="set-name" /></div>
+          <div class="form-group"><label>Email</label><input class="form-control" type="email" id="set-email" /></div>
+          <div class="form-group"><label>Telegram Username</label><input class="form-control" id="set-tg" placeholder="@username" /></div>
+          <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Save</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">App</span></div>
+        <div class="card-body">
+          <button class="btn btn-outline btn-full" onclick="TG.switchInlineQuery ? TG.switchInlineQuery('') : null">✈️ Open Telegram Bot</button>
+          <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="logout()">🚪 Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INSTRUCTOR PAGES ══ -->
+
+    <!-- Instructor Dashboard -->
+    <div class="page" id="page-idashboard" style="padding:14px">
+      <div class="stat-grid">
+        <div class="stat-cell amber"><div class="stat-cell-icon">👥</div><div class="stat-cell-val" id="i-students">—</div><div class="stat-cell-lbl">Students</div></div>
+        <div class="stat-cell blue"><div class="stat-cell-icon">📚</div><div class="stat-cell-val" id="i-courses">—</div><div class="stat-cell-lbl">Courses</div></div>
+        <div class="stat-cell red"><div class="stat-cell-icon">📨</div><div class="stat-cell-val" id="i-complaints">—</div><div class="stat-cell-lbl">Complaints</div></div>
+        <div class="stat-cell green"><div class="stat-cell-icon">📝</div><div class="stat-cell-val" id="i-tests">—</div><div class="stat-cell-lbl">Tests</div></div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Quick Actions</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:9px">
+          <button class="btn btn-amber btn-full" onclick="navTo('icourses')">📚 My Courses</button>
+          <button class="btn btn-primary btn-full" onclick="navTo('igrades')">📊 Enter Grades</button>
+          <button class="btn btn-green btn-full" onclick="showNoticeSheet()">📢 Send Notice</button>
+        </div>
+      </div>
+
+      <!-- Pending complaints -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Pending Complaints</span>
+          <span style="font-size:12px;color:var(--amber);cursor:pointer" onclick="navTo('icomplaints')">View all →</span>
+        </div>
+        <div id="i-complaint-preview"></div>
+      </div>
+    </div>
+
+    <!-- Instructor Courses -->
+    <div class="page" id="page-icourses" style="padding:14px">
+      <div id="i-course-list"></div>
+    </div>
+
+    <!-- Instructor Grades -->
+    <div class="page" id="page-igrades" style="padding:14px">
+      <div class="form-group">
+        <label>Select Course</label>
+        <select class="form-control" id="grade-course-sel" onchange="loadInstructorGradeTable()">
+          <option value="">— Select —</option>
+        </select>
+      </div>
+      <div id="grade-table-wrap">
+        <p style="color:var(--text2);font-size:14px;text-align:center;padding:24px">Select a course to load grade sheet.</p>
+      </div>
+    </div>
+
+    <!-- Instructor Complaints -->
+    <div class="page" id="page-icomplaints" style="padding:14px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Complaints</span></div>
+        <div id="i-complaint-list"></div>
+      </div>
+    </div>
+
+    <!-- Instructor Analytics -->
+    <div class="page" id="page-ianalytics" style="padding:14px">
+      <div class="form-group">
+        <select class="form-control" id="an-sel" onchange="renderMiniAnalytics()">
+          <option value="all">All Courses</option>
+        </select>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-cell blue"><div class="stat-cell-icon">🎯</div><div class="stat-cell-val" id="an-avg">—</div><div class="stat-cell-lbl">Class Avg</div></div>
+        <div class="stat-cell green"><div class="stat-cell-icon">✅</div><div class="stat-cell-val" id="an-pass">—</div><div class="stat-cell-lbl">Pass</div></div>
+        <div class="stat-cell red"><div class="stat-cell-icon">❌</div><div class="stat-cell-val" id="an-fail">—</div><div class="stat-cell-lbl">Fail</div></div>
+        <div class="stat-cell amber"><div class="stat-cell-icon">🏆</div><div class="stat-cell-val" id="an-top">—</div><div class="stat-cell-lbl">Top Score</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Top Students</span></div>
+        <div id="an-top-list"></div>
+      </div>
+    </div>
+
+    <!-- AI Chat -->
+    <div class="page" id="page-ai" style="padding:0">
+      <div class="chat-wrap">
+        <div class="chat-msgs" id="chat-msgs">
+          <div class="chat-msg">
+            <div class="chat-av bot">🤖</div>
+            <div class="chat-bubble">Hi! I'm your CE academic assistant. Ask me about your grades, GPA, courses or the portal.</div>
+          </div>
+        </div>
+        <div class="chat-bar">
+          <input type="text" id="chat-inp" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="chat-send" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- Bottom Nav — student -->
+  <nav class="bottom-nav" id="student-nav">
+    <button class="nav-tab active" onclick="navTo('dashboard',this)" data-page="dashboard">
+      <span class="tab-icon">🏠</span>Home
+    </button>
+    <button class="nav-tab" onclick="navTo('marks',this)" data-page="marks">
+      <span class="tab-icon">📊</span>Marks
+    </button>
+    <button class="nav-tab" onclick="navTo('ai',this)" data-page="ai">
+      <span class="tab-icon">🤖</span>AI
+    </button>
+    <button class="nav-tab" onclick="navTo('complaints',this)" data-page="complaints">
+      <span class="tab-icon">📨</span>Complaints
+    </button>
+    <button class="nav-tab" onclick="navTo('settings',this)" data-page="settings">
+      <span class="tab-icon">⚙️</span>Settings
+    </button>
+  </nav>
+
+  <!-- Bottom Nav — instructor -->
+  <nav class="bottom-nav" id="instructor-nav" style="display:none">
+    <button class="nav-tab active" onclick="navTo('idashboard',this)" data-page="idashboard">
+      <span class="tab-icon">🏠</span>Home
+    </button>
+    <button class="nav-tab" onclick="navTo('icourses',this)" data-page="icourses">
+      <span class="tab-icon">📚</span>Courses
+    </button>
+    <button class="nav-tab" onclick="navTo('igrades',this)" data-page="igrades">
+      <span class="tab-icon">📊</span>Grades
+    </button>
+    <button class="nav-tab" onclick="navTo('ianalytics',this)" data-page="ianalytics">
+      <span class="tab-icon">📈</span>Analytics
+    </button>
+    <button class="nav-tab" onclick="navTo('icomplaints',this)" data-page="icomplaints">
+      <span class="tab-icon">📨</span><span class="tab-dot" id="complaint-dot" style="display:none"></span>Complaints
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<div id="tg-toast"></div>
+
+<script>
+/* ════════════════════════════════════════════
+   TELEGRAM MINI APP SETUP
+════════════════════════════════════════════ */
+const TG = window.Telegram?.WebApp;
+if (TG) {
+  TG.ready();
+  TG.expand();
+  TG.enableClosingConfirmation();
+  // Match Telegram colour scheme
+  if (TG.colorScheme === 'light') document.documentElement.dataset.theme = 'light';
+  // Telegram back button
+  TG.BackButton.onClick(() => goBack());
+}
+
+/* ════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════ */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-9-KOvUiNF7Xj1yUX5QTm0zgzVGLVK-xfPYBgsW8XfOsHyq1RmYXkmRwz-ZclWXIU_Q/exec'; // ← replace with your deployed URL
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let state = {
+  role: null, userId: null, token: null,
+  loginRole: null,
+  pageHistory: [],
+  student: null,
+  instructor: null,
+  courses: [],
+  notifications: [],
+  complaints: [],
+};
+
+/* ════════════════════════════════════════════
+   GRADING HELPERS
+════════════════════════════════════════════ */
+function getGrade(pct) {
+  if (pct>=90) return{letter:'A', gp:4.00};
+  if (pct>=85) return{letter:'A-',gp:3.75};
+  if (pct>=80) return{letter:'B+',gp:3.50};
+  if (pct>=75) return{letter:'B', gp:3.00};
+  if (pct>=70) return{letter:'B-',gp:2.75};
+  if (pct>=65) return{letter:'C+',gp:2.50};
+  if (pct>=60) return{letter:'C', gp:2.00};
+  if (pct>=50) return{letter:'D', gp:1.00};
+  return{letter:'F',gp:0.00};
+}
+function gbClass(l){return l.startsWith('A')?'gb-A':l.startsWith('B')?'gb-B':l.startsWith('C')?'gb-C':l==='D'?'gb-D':'gb-F'}
+function calcTotal(assessments, scores){
+  let t=0;
+  assessments.forEach((a,i)=>{ t+=((parseFloat(scores[i])||0)/(a.max||100))*(a.weight||0); });
+  return Math.round(t*10)/10;
+}
+
+/* ════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════ */
+function showLoginForm(role) {
+  state.loginRole = role;
+  document.getElementById('role-cards').style.display='none';
+  document.getElementById('login-form').style.display='block';
+  document.getElementById('login-heading').textContent = role==='student' ? 'Student Login' : 'Instructor Login';
+  document.getElementById('login-sub').textContent     = role==='student' ? 'Enter your Student ID and password' : 'Enter your Instructor ID and password';
+  document.getElementById('id-label').textContent      = role==='student' ? 'Student ID' : 'Instructor ID';
+  document.getElementById('login-id').placeholder      = role==='student' ? 'e.g. UGR/82533/16' : 'e.g. INS/001/24';
+  document.getElementById('login-err').style.display   = 'none';
+}
+
+function backToRoles() {
+  document.getElementById('role-cards').style.display='flex';
+  document.getElementById('login-form').style.display='none';
+}
+
+async function doLogin() {
+  const id = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const btn= document.getElementById('login-btn');
+  const err= document.getElementById('login-err');
+  if (!id || !pw) { showErr(err,'Fill in all fields.'); return; }
+
+  btn.textContent='Signing in…'; btn.disabled=true;
+
+  // Demo mode — bypass API if URL not set
+  if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycby-9-KOvUiNF7Xj1yUX5QTm0zgzVGLVK-xfPYBgsW8XfOsHyq1RmYXkmRwz-ZclWXIU_Q/exec') {
+    // Accept any non-empty credentials in demo mode
+    state.role   = state.loginRole;
+    state.userId = id;
+    state.token  = 'demo';
+    loadDemoData();
+    launchApp();
+    btn.textContent='Sign In'; btn.disabled=false;
+    return;
+  }
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=login&role=${state.loginRole}&id=${encodeURIComponent(id)}&pw=${encodeURIComponent(pw)}`);
+    const data = await res.json();
+    if (data.success) {
+      state.role   = data.role;
+      state.userId = data.id;
+      state.token  = data.token;
+      await fetchUserData();
+      launchApp();
+    } else {
+      showErr(err, data.error || 'Login failed.');
+    }
+  } catch {
+    showErr(err,'Connection error. Try again.');
+  }
+  btn.textContent='Sign In'; btn.disabled=false;
+}
+
+function showErr(el, msg){ el.textContent=msg; el.style.display='block'; }
+
+function launchApp() {
+  document.getElementById('splash').style.display='none';
+  document.getElementById('app').style.display='flex';
+
+  if (state.role==='student') {
+    document.getElementById('student-nav').style.display='flex';
+    document.getElementById('instructor-nav').style.display='none';
+    renderStudentDashboard();
+  } else {
+    document.getElementById('student-nav').style.display='none';
+    document.getElementById('instructor-nav').style.display='flex';
+    renderInstructorDashboard();
+  }
+}
+
+function logout() {
+  state = { role:null, userId:null, token:null, loginRole:null, pageHistory:[], student:null, instructor:null, courses:[], notifications:[], complaints:[] };
+  document.getElementById('app').style.display='none';
+  document.getElementById('splash').style.display='flex';
+  backToRoles();
+  if (TG) TG.BackButton.hide();
+}
+
+/* ════════════════════════════════════════════
+   DATA LOADING
+════════════════════════════════════════════ */
+function loadDemoData() {
+  if (state.role==='student') {
+    state.student = {
+      name:'Abomsa Dida Wake', id:state.userId,
+      cgpa:3.45, sgpa:3.60, credits:18, avgScore:81, openComplaints:1,
+      courses:[
+        { code:'CE401', name:'Highway Engineering', credits:4, instructor:'Dr. Tesfaye', total:78, grade:'B', gp:3.0,
+          assessments:[
+            {name:'Assignment 1',weight:5,max:100,score:85},
+            {name:'Quiz 1',weight:10,max:100,score:72},
+            {name:'Mid Exam',weight:20,max:100,score:75},
+            {name:'Final Exam',weight:40,max:100,score:78},
+            {name:'Project',weight:25,max:100,score:82},
+          ]},
+        { code:'CE402', name:'Structural Analysis', credits:4, instructor:'Dr. Alemu', total:85, grade:'A-', gp:3.75,
+          assessments:[
+            {name:'Assignment 1',weight:10,max:100,score:90},
+            {name:'Mid Exam',weight:30,max:100,score:86},
+            {name:'Final Exam',weight:60,max:100,score:85},
+          ]},
+        { code:'CE403', name:'Geotechnical Engineering', credits:3, instructor:'Dr. Bekele', total:65, grade:'C+', gp:2.5,
+          assessments:[
+            {name:'Quiz 1',weight:20,max:100,score:60},
+            {name:'Mid Exam',weight:30,max:100,score:62},
+            {name:'Final Exam',weight:50,max:100,score:68},
+          ]},
+      ],
+    };
+    state.notifications = [
+      {type:'grade',title:'Final Exam grades published — CE401',time:'2h ago',read:false},
+      {type:'note',title:'New lecture notes uploaded — CE402',time:'1d ago',read:false},
+      {type:'notice',title:'Department meeting — Thursday 2pm',time:'2d ago',read:true},
+    ];
+    state.complaints = [
+      {course:'CE401',assessment:'Quiz 1',score:72,expected:80,reason:'Marking error on Q3',status:'pending',date:'Mar 12'},
+    ];
+  } else {
+    state.instructor = { name:'Dr. Tesfaye Alemu', id:state.userId };
+    state.courses = [
+      { code:'CE401', name:'Highway Engineering', credits:4, status:'active',
+        assessments:[{name:'Assignment 1',weight:5,max:100},{name:'Mid Exam',weight:30,max:100},{name:'Final Exam',weight:65,max:100}],
+        students:[
+          {id:'UGR/82533/16',name:'Abomsa Dida Wake',scores:[85,75,78]},
+          {id:'UGR/82534/16',name:'Birtukan Haile',scores:[90,87,89]},
+          {id:'UGR/82535/16',name:'Chala Gemechu',scores:[60,55,52]},
+          {id:'UGR/82536/16',name:'Dereje Tadesse',scores:[78,72,76]},
+        ]},
+      { code:'CE402', name:'Structural Analysis', credits:4, status:'active',
+        assessments:[{name:'Assignment 1',weight:10,max:100},{name:'Mid Exam',weight:30,max:100},{name:'Final Exam',weight:60,max:100}],
+        students:[
+          {id:'UGR/82533/16',name:'Abomsa Dida Wake',scores:[90,86,85]},
+          {id:'UGR/82534/16',name:'Birtukan Haile',scores:[92,91,90]},
+        ]},
+    ];
+    state.complaints = [
+      {id:'C001',student:'Abomsa Dida Wake',course:'CE401',assessment:'Quiz 1',score:72,expected:80,reason:'Marking error on Q3.',status:'pending',date:'Mar 12'},
+    ];
+  }
+}
+
+async function fetchUserData() {
+  try {
+    if (state.role==='student') {
+      const res = await fetch(`${SCRIPT_URL}?action=getStudentResults&studentId=${encodeURIComponent(state.userId)}&token=${state.token}`);
+      const d   = await res.json();
+      if (d.success) state.student = d.student;
+      else loadDemoData();
+    } else {
+      const res = await fetch(`${SCRIPT_URL}?action=getInstructorCourses&instructorId=${encodeURIComponent(state.userId)}&token=${state.token}`);
+      const d   = await res.json();
+      if (d.success) { state.courses = d.courses; state.instructor = { name:state.userId, id:state.userId }; }
+      else loadDemoData();
+    }
+  } catch { loadDemoData(); }
+}
+
+/* ════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════ */
+const PAGE_TITLES = {
+  dashboard:'Dashboard', marks:'My Marks', notifications:'Notifications',
+  complaints:'Complaints', settings:'Settings', 'course-detail':'Course Detail',
+  ai:'AI Assistant',
+  idashboard:'Dashboard', icourses:'My Courses', igrades:'Grade Entry',
+  ianalytics:'Analytics', icomplaints:'Complaints',
+};
+
+function navTo(pageId, tabEl) {
+  // Save history
+  const current = document.querySelector('.page.active');
+  if (current) state.pageHistory.push(current.id.replace('page-',''));
+
+  // Deactivate all pages
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+pageId).classList.add('active');
+
+  // Update tab
+  const nav = state.role==='student' ? document.getElementById('student-nav') : document.getElementById('instructor-nav');
+  nav.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  else {
+    const match = nav.querySelector(`[data-page="${pageId}"]`);
+    if (match) match.classList.add('active');
+  }
+
+  // Update header
+  document.getElementById('hdr-title').textContent = PAGE_TITLES[pageId] || pageId;
+  document.getElementById('hdr-sub').textContent   = '';
+
+  // Back button
+  const isRoot = ['dashboard','idashboard'].includes(pageId);
+  const backBtn = document.getElementById('back-btn');
+  backBtn.classList.toggle('hidden', isRoot);
+  if (TG) isRoot ? TG.BackButton.hide() : TG.BackButton.show();
+
+  // Scroll to top
+  document.getElementById('scroll-area').scrollTop = 0;
+
+  // Lazy renders
+  if (pageId==='marks')       renderMarksPage();
+  if (pageId==='notifications') renderNotifications();
+  if (pageId==='complaints')  renderStudentComplaints();
+  if (pageId==='icourses')    renderInstructorCourses();
+  if (pageId==='icomplaints') renderInstructorComplaints();
+  if (pageId==='ianalytics')  renderMiniAnalytics();
+}
+
+function goBack() {
+  if (state.pageHistory.length > 0) {
+    const prev = state.pageHistory.pop();
+    navTo(prev);
+    state.pageHistory.pop(); // navTo pushed again, remove it
+  }
+}
+
+/* ════════════════════════════════════════════
+   STUDENT RENDERS
+════════════════════════════════════════════ */
+function renderStudentDashboard() {
+  const s = state.student;
+  if (!s) return;
+
+  // Stats
+  document.getElementById('s-cgpa').textContent      = s.cgpa?.toFixed(2) || '—';
+  document.getElementById('s-courses').textContent   = s.courses?.length || 0;
+  document.getElementById('s-avg').textContent       = (s.avgScore||0)+'%';
+  document.getElementById('s-complaints').textContent= s.openComplaints||0;
+
+  // Topbar
+  document.getElementById('hdr-title').textContent = 'Dashboard';
+  document.getElementById('hdr-sub').textContent   = s.name || '';
+
+  // GPA ring
+  const gpa  = s.cgpa || 0;
+  const circ = 2*Math.PI*54; // 339.3
+  document.getElementById('gpa-num').textContent = gpa.toFixed(2);
+  document.getElementById('sgpa-val').textContent= (s.sgpa||gpa).toFixed(2);
+  document.getElementById('cr-val').textContent  = s.credits||0;
+  setTimeout(()=>{
+    const arc = document.getElementById('gpa-arc');
+    if(arc) arc.style.strokeDashoffset = circ - circ*(gpa/4);
+  },300);
+
+  // Recent grades
+  const gl = document.getElementById('recent-grades-list');
+  gl.innerHTML = (s.courses||[]).slice(0,3).map(c=>{
+    const g = getGrade(c.total||0);
+    return `<div class="list-item">
+      <div class="list-icon" style="background:rgba(37,99,235,.12)">📊</div>
+      <div class="list-content">
+        <div class="list-title">${c.code} — ${c.name}</div>
+        <div class="list-sub">👨‍🏫 ${c.instructor||''} · ${c.credits} Cr</div>
+      </div>
+      <div class="list-right">
+        <div style="font-weight:700;font-size:15px">${c.total}%</div>
+        <span class="gb ${gbClass(c.grade)}">${c.grade}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Announcements
+  const al = document.getElementById('dash-announcements');
+  const icons={grade:'📊',note:'📚',notice:'📢',complaint:'📨'};
+  al.innerHTML = state.notifications.slice(0,3).map(n=>`
+    <div class="list-item ${!n.read?'notif-unread':''}">
+      <div class="list-icon" style="background:var(--glass)">${icons[n.type]||'🔔'}</div>
+      <div class="list-content">
+        <div class="list-title">${n.title}</div>
+        <div class="list-sub">${n.time}</div>
+      </div>
+    </div>`).join('');
+
+  // Update notif badge
+  const unread = state.notifications.filter(n=>!n.read).length;
+  const badge  = document.getElementById('hdr-badge');
+  badge.textContent  = unread;
+  badge.style.display= unread?'block':'none';
+
+  // Populate complaint course dropdown
+  const sel = document.getElementById('c-course');
+  sel.innerHTML = '<option value="">— Select course —</option>';
+  (s.courses||[]).forEach((c,i)=>sel.innerHTML+=`<option value="${i}">${c.code} — ${c.name}</option>`);
+}
+
+function renderMarksPage() {
+  const s = state.student;
+  const wrap = document.getElementById('marks-list');
+  if (!s?.courses?.length) { wrap.innerHTML='<p style="color:var(--text2);padding:24px;text-align:center">No grades yet.</p>'; return; }
+  wrap.innerHTML = (s.courses||[]).map((c,i)=>`
+    <div class="card" onclick="showCourseDetail(${i})" style="cursor:pointer;margin-bottom:12px">
+      <div class="card-body">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">${c.code}</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">${c.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">👨‍🏫 ${c.instructor||''} · ${c.credits} Credit Hours</div>
+        <div class="prog-wrap">
+          <div class="prog-label"><span>${c.total}% overall</span><span class="gb ${gbClass(c.grade)}">${c.grade} · ${c.gp.toFixed(2)} GP</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${c.total}%"></div></div>
+        </div>
+        <div style="font-size:12px;color:var(--blue);margin-top:4px">Tap for full breakdown →</div>
+      </div>
+    </div>`).join('');
+}
+
+function showCourseDetail(idx) {
+  const c    = state.student.courses[idx];
+  const body = document.getElementById('course-detail-body');
+  let weighted = 0;
+  const rows = (c.assessments||[]).map(a=>{
+    const contrib = ((a.score||0)/a.max)*a.weight;
+    weighted += contrib;
+    const g = getGrade(a.score||0);
+    return `<div style="display:grid;grid-template-columns:1fr 50px 50px 50px;gap:6px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;font-size:13px">
+      <span>${a.name}</span>
+      <span style="text-align:center;color:var(--text2)">${a.weight}%</span>
+      <span style="text-align:center">${a.score}/${a.max}</span>
+      <span style="text-align:center"><span class="gb ${gbClass(g.letter)}">${g.letter}</span></span>
+    </div>`;
+  }).join('');
+
+  const overall = getGrade(Math.round(weighted*10)/10);
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-header" style="flex-direction:column;align-items:flex-start;gap:4px">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:1px">${c.code}</div>
+        <div style="font-size:16px;font-weight:700">${c.name}</div>
+        <div style="font-size:12px;color:var(--text2)">👨‍🏫 ${c.instructor||''}</div>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 50px 50px 50px;gap:6px;padding:8px 0;border-bottom:2px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">
+          <span>Assessment</span><span style="text-align:center">Wt</span><span style="text-align:center">Score</span><span style="text-align:center">Grade</span>
+        </div>
+        ${rows}
+        <div style="display:grid;grid-template-columns:1fr 50px 50px 50px;gap:6px;padding:12px 0;font-size:14px;font-weight:700;border-top:2px solid var(--border);margin-top:4px">
+          <span>Total</span>
+          <span style="text-align:center">100%</span>
+          <span style="text-align:center">${Math.round(weighted*10)/10}%</span>
+          <span style="text-align:center"><span class="gb ${gbClass(overall.letter)}">${overall.letter}</span></span>
+        </div>
+        <div style="margin-top:12px;padding:10px;background:var(--glass);border-radius:8px;font-size:11px;color:var(--text2);line-height:1.6">
+          🇪🇹 Ethiopian Grading: A≥90=4.0 · A-≥85=3.75 · B+≥80=3.5 · B≥75=3.0 · B-≥70=2.75 · C+≥65=2.5 · C≥60=2.0 · D≥50=1.0 · F&lt;50=0
+        </div>
+      </div>
+    </div>`;
+
+  state.pageHistory.push(document.querySelector('.page.active').id.replace('page-',''));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-course-detail').classList.add('active');
+  document.getElementById('hdr-title').textContent = c.code;
+  document.getElementById('hdr-sub').textContent   = c.name;
+  document.getElementById('back-btn').classList.remove('hidden');
+  if (TG) TG.BackButton.show();
+  document.getElementById('scroll-area').scrollTop=0;
+}
+
+function renderNotifications() {
+  const icons={grade:'📊',note:'📚',notice:'📢',complaint:'📨'};
+  document.getElementById('notif-list').innerHTML = state.notifications.map(n=>`
+    <div class="list-item ${!n.read?'notif-unread':''}">
+      <div class="list-icon" style="background:var(--glass)">${icons[n.type]||'🔔'}</div>
+      <div class="list-content">
+        <div class="list-title">${n.title}</div>
+        <div class="list-sub">${n.time}</div>
+      </div>
+    </div>`).join('') || '<p style="padding:20px;color:var(--text2);font-size:14px;text-align:center">No notifications.</p>';
+}
+
+function markAllRead() {
+  state.notifications.forEach(n=>n.read=true);
+  renderNotifications();
+  const badge=document.getElementById('hdr-badge');
+  badge.textContent=''; badge.style.display='none';
+  showToast('✅ All marked as read');
+}
+
+function loadComplaintAssessments() {
+  const idx = document.getElementById('c-course').value;
+  const sel = document.getElementById('c-assessment');
+  sel.innerHTML='<option value="">— Select assessment —</option>';
+  if (idx==='') return;
+  const c = state.student.courses[parseInt(idx)];
+  (c.assessments||[]).forEach(a=>sel.innerHTML+=`<option>${a.name}</option>`);
+}
+
+async function submitComplaint() {
+  const courseIdx   = document.getElementById('c-course').value;
+  const assessment  = document.getElementById('c-assessment').value;
+  const score       = document.getElementById('c-score').value;
+  const expected    = document.getElementById('c-expected').value;
+  const reason      = document.getElementById('c-reason').value.trim();
+  if (!courseIdx||!assessment||!reason) { showToast('⚠ Fill all required fields.'); return; }
+  const course = state.student.courses[parseInt(courseIdx)].code;
+
+  try {
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'submitComplaint',studentId:state.userId,token:state.token,course,assessment,score,expected,reason})});
+  } catch {}
+
+  state.complaints.push({course,assessment,score,expected,reason,status:'pending',date:'Today'});
+  showToast('✅ Complaint submitted!');
+  document.getElementById('c-reason').value='';
+  renderStudentComplaints();
+}
+
+function renderStudentComplaints() {
+  document.getElementById('complaint-list').innerHTML = state.complaints.map(c=>`
+    <div class="list-item">
+      <div class="list-icon" style="background:rgba(239,68,68,.10)">📨</div>
+      <div class="list-content">
+        <div class="list-title">${c.course} · ${c.assessment}</div>
+        <div class="list-sub">Score: ${c.score} · Expected: ${c.expected}</div>
+        <div class="list-sub">${c.reason?.slice(0,50)}…</div>
+      </div>
+      <div class="list-right"><span class="status-pill status-${c.status}">${c.status}</span><br><span style="font-size:11px;color:var(--text2)">${c.date||''}</span></div>
+    </div>`).join('') || '<p style="padding:20px;color:var(--text2);font-size:14px;text-align:center">No complaints yet.</p>';
+}
+
+function saveSettings() {
+  showToast('✅ Settings saved!');
+}
+
+/* ════════════════════════════════════════════
+   INSTRUCTOR RENDERS
+════════════════════════════════════════════ */
+function renderInstructorDashboard() {
+  const totalStudents = [...new Set(state.courses.flatMap(c=>c.students.map(s=>s.id)))].length;
+  const pending       = state.complaints.filter(c=>c.status==='pending').length;
+
+  document.getElementById('i-students').textContent  = totalStudents;
+  document.getElementById('i-courses').textContent   = state.courses.length;
+  document.getElementById('i-complaints').textContent= pending;
+  document.getElementById('i-tests').textContent     = 3; // demo
+
+  document.getElementById('hdr-title').textContent = 'Dashboard';
+  document.getElementById('hdr-sub').textContent   = state.instructor?.name||'';
+
+  // Complaint dot
+  document.getElementById('complaint-dot').style.display = pending?'block':'none';
+
+  // Instructor grade course select
+  const sel = document.getElementById('grade-course-sel');
+  sel.innerHTML='<option value="">— Select —</option>';
+  state.courses.forEach((c,i)=>sel.innerHTML+=`<option value="${i}">${c.code} — ${c.name}</option>`);
+
+  // Analytics select
+  const an=document.getElementById('an-sel');
+  an.innerHTML='<option value="all">All Courses</option>';
+  state.courses.forEach((c,i)=>an.innerHTML+=`<option value="${i}">${c.code} — ${c.name}</option>`);
+
+  // Pending complaint preview
+  const prev = document.getElementById('i-complaint-preview');
+  const pend = state.complaints.filter(c=>c.status==='pending');
+  prev.innerHTML = pend.length
+    ? pend.slice(0,2).map(c=>`
+      <div class="list-item">
+        <div class="list-icon" style="background:rgba(239,68,68,.10)">📨</div>
+        <div class="list-content">
+          <div class="list-title">${c.student}</div>
+          <div class="list-sub">${c.course} · ${c.assessment}</div>
+        </div>
+        <span class="status-pill status-pending">pending</span>
+      </div>`).join('')
+    : '<p style="padding:16px;color:var(--text2);font-size:13px;text-align:center">No pending complaints 🎉</p>';
+}
+
+function renderInstructorCourses() {
+  document.getElementById('i-course-list').innerHTML = state.courses.map((c,i)=>`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-body">
+        <div style="font-size:11px;font-weight:700;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${c.code}</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">${c.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">📚 ${c.credits} Cr · 👥 ${c.students.length} students · 📋 ${c.assessments.length} assessments</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-amber btn-sm" onclick="openGradeForCourse(${i})">📊 Grades</button>
+          <button class="btn btn-outline btn-sm" onclick="showCourseStudents(${i})">👥 Students</button>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--text2);font-size:14px;text-align:center;padding:24px">No courses yet.</p>';
+}
+
+function openGradeForCourse(idx) {
+  document.getElementById('grade-course-sel').value = idx;
+  navTo('igrades');
+  setTimeout(loadInstructorGradeTable, 100);
+}
+
+function showCourseStudents(idx) {
+  const c = state.courses[idx];
+  showToast(`👥 ${c.name}: ${c.students.length} students enrolled`);
+}
+
+function loadInstructorGradeTable() {
+  const idx  = parseInt(document.getElementById('grade-course-sel').value);
+  const wrap = document.getElementById('grade-table-wrap');
+  if (isNaN(idx)||idx<0) { wrap.innerHTML='<p style="color:var(--text2);font-size:14px;text-align:center;padding:24px">Select a course above.</p>'; return; }
+
+  const c = state.courses[idx];
+  if (!c.students.length) { wrap.innerHTML='<p style="color:var(--text2);font-size:14px;text-align:center;padding:24px">No students enrolled.</p>'; return; }
+
+  wrap.innerHTML = `
+    <div style="margin-bottom:10px;display:flex;gap:8px">
+      <button class="btn btn-green btn-sm" onclick="saveInstructorGrades(${idx})">💾 Save</button>
+      <button class="btn btn-outline btn-sm" onclick="publishInstructorGrades(${idx})">📢 Publish</button>
+    </div>
+    ${c.students.map((s,si)=>{
+      const total = calcTotal(c.assessments, s.scores);
+      const g     = getGrade(total);
+      return `
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div style="font-size:14px;font-weight:600">${s.name}</div>
+              <div style="font-size:11px;color:var(--text2)">${s.id}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:1.1rem;font-weight:700" id="total-${idx}-${si}">${total}%</div>
+              <span class="gb ${gbClass(g.letter)}" id="grade-${idx}-${si}">${g.letter}</span>
+            </div>
+          </div>
+          ${c.assessments.map((a,ai)=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;color:var(--text2)">${a.name} <span style="color:var(--text3)">(${a.weight}%)</span></span>
+              <input type="number" min="0" max="${a.max}" value="${s.scores[ai]||0}"
+                style="width:60px;padding:5px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:13px;text-align:center;font-family:inherit;outline:none"
+                oninput="onGradeInput(this,${idx},${si},${ai},${a.max})" />
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function onGradeInput(input, cIdx, sIdx, aIdx, max) {
+  const val = parseFloat(input.value)||0;
+  if (val>max) { input.style.borderColor='var(--red)'; } else { input.style.borderColor=''; }
+  state.courses[cIdx].students[sIdx].scores[aIdx] = val;
+  const c     = state.courses[cIdx];
+  const total = calcTotal(c.assessments, c.students[sIdx].scores);
+  const g     = getGrade(total);
+  document.getElementById(`total-${cIdx}-${sIdx}`).textContent = total+'%';
+  const gb = document.getElementById(`grade-${cIdx}-${sIdx}`);
+  gb.textContent = g.letter;
+  gb.className   = `gb ${gbClass(g.letter)}`;
+}
+
+async function saveInstructorGrades(idx) {
+  const c = state.courses[idx];
+  try {
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'saveGrades',token:state.token,courseCode:c.code,
+        grades:c.students.map(s=>({id:s.id,scores:s.scores}))})});
+  } catch {}
+  showToast('✅ Grades saved!');
+}
+
+async function publishInstructorGrades(idx) {
+  const c = state.courses[idx];
+  try {
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'publishResults',token:state.token,courseCode:c.code})});
+  } catch {}
+  showToast(`📢 Grades published! Students notified.`);
+  if (TG) TG.showAlert(`Grades for ${c.name} published. Students will be notified via Telegram.`);
+}
+
+function renderInstructorComplaints() {
+  document.getElementById('i-complaint-list').innerHTML = state.complaints.map((c,i)=>`
+    <div class="list-item">
+      <div class="list-icon" style="background:rgba(239,68,68,.10)">📨</div>
+      <div class="list-content">
+        <div class="list-title">${c.student}</div>
+        <div class="list-sub">${c.course} · ${c.assessment} · Got:${c.score} Exp:${c.expected}</div>
+        <div class="list-sub" style="margin-top:3px">${c.reason?.slice(0,60)}…</div>
+      </div>
+      <div class="list-right">
+        <span class="status-pill status-${c.status}">${c.status}</span>
+        ${c.status==='pending'?`<br><button class="btn btn-green btn-xs" style="margin-top:6px;padding:4px 8px;font-size:11px" onclick="resolveComplaint(${i})">✅ Resolve</button>`:''}
+      </div>
+    </div>`).join('') || '<p style="padding:20px;color:var(--text2);font-size:14px;text-align:center">No complaints.</p>';
+}
+
+function resolveComplaint(i) {
+  state.complaints[i].status='resolved';
+  renderInstructorComplaints();
+  renderInstructorDashboard();
+  showToast('✅ Complaint resolved.');
+}
+
+function renderMiniAnalytics() {
+  const selVal = document.getElementById('an-sel').value;
+  let students = [];
+  if (selVal==='all') {
+    state.courses.forEach(c=>c.students.forEach(s=>students.push({...s,assessments:c.assessments})));
+  } else {
+    const c=state.courses[parseInt(selVal)];
+    if(c) students=c.students.map(s=>({...s,assessments:c.assessments}));
+  }
+  const totals = students.map(s=>calcTotal(s.assessments,s.scores));
+  if (!totals.length) return;
+
+  const avg  = Math.round(totals.reduce((a,b)=>a+b,0)/totals.length*10)/10;
+  const pass = totals.filter(t=>t>=50).length;
+  const fail = totals.length-pass;
+  const top  = Math.max(...totals);
+
+  document.getElementById('an-avg').textContent  = avg+'%';
+  document.getElementById('an-pass').textContent = pass;
+  document.getElementById('an-fail').textContent = fail;
+  document.getElementById('an-top').textContent  = top+'%';
+
+  const ranked = students
+    .map(s=>({name:s.name,total:calcTotal(s.assessments,s.scores)}))
+    .sort((a,b)=>b.total-a.total);
+
+  document.getElementById('an-top-list').innerHTML = ranked.slice(0,5).map((s,i)=>`
+    <div class="list-item">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0">${i+1}</div>
+      <div class="list-content"><div class="list-title">${s.name}</div></div>
+      <span class="gb ${gbClass(getGrade(s.total).letter)}">${s.total}%</span>
+    </div>`).join('');
+}
+
+function showNoticeSheet() {
+  if (TG) {
+    // Use Telegram's native popup for quick notice
+    TG.showPopup({
+      title:'Send Notice',
+      message:'Use the full portal at ce-portal.github.io to send detailed notices with Telegram delivery.',
+      buttons:[{id:'ok',type:'ok'}]
+    });
+  } else {
+    showToast('📢 Use the web portal to send notices.');
+  }
+}
+
+/* ════════════════════════════════════════════
+   AI CHAT
+════════════════════════════════════════════ */
+async function sendChat() {
+  const input = document.getElementById('chat-inp');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  input.value='';
+
+  appendMsg('user',msg);
+  const thinking=appendMsg('bot','⋯');
+
+  const ctx = JSON.stringify({
+    student: state.student?.name,
+    cgpa:    state.student?.cgpa,
+    courses:(state.student?.courses||[]).map(c=>({code:c.code,name:c.name,grade:c.grade,total:c.total}))
+  });
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=aiChat&msg=${encodeURIComponent(msg)}&context=${encodeURIComponent(ctx)}`);
+    const data = await res.json();
+    thinking.textContent = data.reply || 'Sorry, I could not answer that.';
+  } catch {
+    thinking.textContent = ruleBasedReply(msg);
+  }
+}
+
+function appendMsg(role,text) {
+  const win  = document.getElementById('chat-msgs');
+  const wrap = document.createElement('div');
+  wrap.className=`chat-msg ${role==='user'?'user':''}`;
+  wrap.innerHTML=`<div class="chat-av ${role}">${role==='user'?'🎓':'🤖'}</div><div class="chat-bubble">${text}</div>`;
+  win.appendChild(wrap);
+  win.scrollTop=win.scrollHeight;
+  return wrap.querySelector('.chat-bubble');
+}
+
+function ruleBasedReply(msg) {
+  const m=msg.toLowerCase();
+  if(m.includes('gpa'))      return `Your CGPA is ${state.student?.cgpa?.toFixed(2)||'—'} / 4.0`;
+  if(m.includes('course'))   return `You are enrolled in ${state.student?.courses?.length||0} courses this semester.`;
+  if(m.includes('grade'))    return 'Open My Marks to see your full grade breakdown with weighted scores.';
+  if(m.includes('complaint'))return 'Go to Complaints tab to raise or track grade disputes.';
+  if(m.includes('pass'))     return 'The passing mark is 50% (Grade D). Below 50% is an F.';
+  if(m.includes('hi')||m.includes('hello')) return `Hello ${state.student?.name||'there'}! 👋 Ask me about grades, GPA or courses.`;
+  return 'I can help with grades, GPA, courses and complaints. Please ask a specific question!';
+}
+
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
+function showToast(msg) {
+  const t=document.getElementById('tg-toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ════════════════════════════════════════════
+   AUTO-LOGIN VIA TELEGRAM USER DATA
+════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', ()=>{
+  // If Telegram provides initData, try auto-link
+  if (TG?.initDataUnsafe?.user) {
+    const tgUser = TG.initDataUnsafe.user;
+    // You can pre-fill the ID field with Telegram username
+    document.getElementById('login-id').value = tgUser.username || '';
+  }
+
+  // Listen for Telegram theme changes
+  if (TG) {
+    TG.onEvent('themeChanged', ()=>{
+      document.documentElement.dataset.theme = TG.colorScheme==='light' ? 'light' : 'dark';
+    });
+  }
+});
+</script>
+</body>
+</html>
