@@ -12,7 +12,7 @@
 const APP = {
   version:    '1.0.0',
   name:       'CE Department Portal',
-  scriptUrl:  localStorage.getItem('script_url') || 'https://script.google.com/macros/s/AKfycby-9-KOvUiNF7Xj1yUX5QTm0zgzVGLVK-xfPYBgsW8XfOsHyq1RmYXkmRwz-ZclWXIU_Q/exec',
+  scriptUrl:  localStorage.getItem('script_url') || 'https://script.google.com/macros/s/AKfycbwDPrbrqhKoFcSuS5FvhFhvmey5yAxprHUoTeRJ0cQas84xMcIzeIr6YkzOJH9l6Fw6/exec',
   telegramBot:'https://t.me/ce_dept_portal_bot',
   inactivityMs: 30 * 60 * 1000,   // 30 minutes
   toastMs:      3200,
@@ -939,7 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 9. Apply saved Script URL from localStorage
-  if (APP.scriptUrl !== 'https://script.google.com/macros/s/AKfycby-9-KOvUiNF7Xj1yUX5QTm0zgzVGLVK-xfPYBgsW8XfOsHyq1RmYXkmRwz-ZclWXIU_Q/exec') {
+  if (APP.scriptUrl !== 'https://script.google.com/macros/s/AKfycbwDPrbrqhKoFcSuS5FvhFhvmey5yAxprHUoTeRJ0cQas84xMcIzeIr6YkzOJH9l6Fw6/exec') {
     console.info('[CE Portal] Connected to Apps Script:', APP.scriptUrl.slice(0, 60) + '…');
   } else {
     console.warn('[CE Portal] Running in demo mode. Set script_url in localStorage.');
